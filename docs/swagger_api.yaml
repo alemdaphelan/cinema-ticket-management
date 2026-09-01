@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: Hệ thống Đặt vé xem phim API
+  version: 1.0.0
+  description: Tài liệu mô tả toàn bộ API Endpoints cho các tác nhân Admin, Staff, User.
+servers:
+  - url: http://localhost:8000/api
+    description: Local server
+tags:
+  - name: Auth
+    description: Xác thực người dùng
+  - name: Public
+    description: API cho người dùng xem phim (không cần login)
+  - name: Booking
+    description: Luồng đặt vé của User
+  - name: Staff
+    description: Nghiệp vụ nhân viên tại rạp
+  - name: Admin
+    description: Quản trị hệ thống
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Đăng nhập
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: OK (Trả về Token)
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Đăng ký tài khoản User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '201':
+          description: Created
+  /movies:
+    get:
+      tags: [Public]
+      summary: Lấy danh sách phim
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [coming_soon, showing]
+      responses:
+        '200':
+          description: OK
+  /movies/{id}:
+    get:
+      tags: [Public]
+      summary: Chi tiết phim (bao gồm URL teaser)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+  /shows:
+    get:
+      tags: [Public]
+      summary: Lấy danh sách suất chiếu
+      parameters:
+        - in: query
+          name: movie_id
+          schema: { type: integer }
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+  /shows/{id}/seats:
+    get:
+      tags: [Public]
+      summary: Lấy sơ đồ ghế và trạng thái
+      description: Trả về trạng thái ghế (available, held, booked).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+  /snacks:
+    get:
+      tags: [Public]
+      summary: Lấy danh sách bắp nước
+      responses:
+        '200':
+          description: OK
+  /orders/hold:
+    post:
+      tags: [Booking]
+      summary: Bước 2 - Chọn ghế & Giữ ghế (10 phút)
+      description: Tạo order trạng thái pending, hẹn giờ 10 phút nhả ghế. Khóa ghế bằng Database Lock.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                show_id: { type: integer }
+                seat_ids:
+                  type: array
+                  items: { type: integer }
+      responses:
+        '201':
+          description: Trả về Order ID và `hold_expires_at`
+  /orders/{id}/snacks:
+    put:
+      tags: [Booking]
+      summary: Bước 3 - Chọn dịch vụ tăng thêm
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                snacks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      snack_id: { type: integer }
+                      quantity: { type: integer }
+      responses:
+        '200':
+          description: Cập nhật thành công, tính lại tổng tiền.
+  /orders/{id}/voucher:
+    post:
+      tags: [Booking]
+      summary: Bước 4 - Áp dụng Voucher
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                voucher_code: { type: string }
+      responses:
+        '200':
+          description: Áp dụng thành công, tính lại tổng tiền
+  /orders/{id}/pay:
+    post:
+      tags: [Booking]
+      summary: Bước 5 - Thanh toán
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payment_method:
+                  type: string
+                  enum: [vnpay, momo]
+      responses:
+        '200':
+          description: Trả về URL cổng thanh toán
+  /webhooks/payment:
+    post:
+      tags: [Booking]
+      summary: Webhook nhận kết quả từ VNPay/Momo
+      description: Nếu thành công, đổi trạng thái Order thành 'paid', sinh QR code.
+      responses:
+        '200':
+          description: Đã nhận
+  /orders/history:
+    get:
+      tags: [Booking]
+      summary: Lịch sử đặt vé & Lấy QR Code
+      responses:
+        '200':
+          description: OK
+  /staff/tickets/scan:
+    post:
+      tags: [Staff]
+      summary: Quét QR Code & Soát vé
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                qr_code: { type: string }
+      responses:
+        '200':
+          description: Hợp lệ, trả về thông tin rạp/ghế/bắp nước. Trạng thái cập nhật thành 'completed'
+  /admin/movies/fetch-tmdb:
+    post:
+      tags: [Admin]
+      summary: Tự động lấy thông tin phim từ TMDB
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tmdb_id: { type: string }
+      responses:
+        '200':
+          description: Trả về chi tiết phim từ TMDB để admin review trước khi lưu.
+  /admin/movies:
+    post:
+      tags: [Admin]
+      summary: Thêm phim mới (cùng với URL Teaser)
+      responses:
+        '201':
+          description: Created
+    get:
+      tags: [Admin]
+      summary: Danh sách phim
+      responses:
+        '200':
+          description: OK
+  /admin/movies/{id}:
+    put:
+      tags: [Admin]
+      summary: Cập nhật / Đổi trạng thái phim
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags: [Admin]
+      summary: Xóa / Ẩn phim
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '204':
+          description: Deleted
+  /admin/shows:
+    post:
+      tags: [Admin]
+      summary: Tạo suất chiếu mới (Có check trùng lịch và dọn phòng)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                movie_id: { type: integer }
+                room_id: { type: integer }
+                start_time: { type: string, format: date-time }
+                price: { type: number }
+      responses:
+        '201':
+          description: Created
+  /admin/snacks:
+    post:
+      tags: [Admin]
+      summary: Tạo Combo bắp nước
+      responses:
+        '201':
+          description: Created
+  /admin/vouchers:
+    post:
+      tags: [Admin]
+      summary: Tạo Voucher (Chiến dịch mã giảm giá)
+      responses:
+        '201':
+          description: Created

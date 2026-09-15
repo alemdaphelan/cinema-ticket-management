@@ -7,17 +7,25 @@ use Illuminate\Http\Request;
 
 class VoucherController extends Controller
 {
+    /**
+     * [Admin] Danh sách tất cả voucher.
+     */
     public function index()
     {
-        //
+        $vouchers = Voucher::orderBy('created_at', 'desc')->get();
+
+        return response()->json(['data' => $vouchers]);
     }
 
+    /**
+     * [Admin] Tạo voucher mới.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'code' => 'required|string|unique:vouchers,code|max:50',
+        $validated = $request->validate([
+            'code' => 'required|string|max:50|unique:vouchers,code',
             'discount_value' => 'required|numeric|min:0',
-            'discount_type' => 'required|in:percentage,fixed_amount',
+            'discount_type' => 'required|in:percent,fixed',
             'min_order_value' => 'required|numeric|min:0',
             'max_uses_per_user' => 'required|integer|min:1',
             'valid_from' => 'required|date',
@@ -25,35 +33,42 @@ class VoucherController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $voucher = Voucher::create([
-            'code' => strtoupper($request->code),
-            'discount_value' => $request->discount_value,
-            'discount_type' => $request->discount_type,
-            'min_order_value' => $request->min_order_value,
-            'max_uses_per_user' => $request->max_uses_per_user,
-            'valid_from' => $request->valid_from,
-            'valid_to' => $request->valid_to,
-            'is_active' => $request->is_active ?? true,
+        $voucher = Voucher::create($validated);
+
+        return response()->json(['data' => $voucher, 'message' => 'Tạo voucher thành công!'], 201);
+    }
+
+    /**
+     * [Admin] Cập nhật voucher.
+     */
+    public function update(Request $request, int $id)
+    {
+        $voucher = Voucher::findOrFail($id);
+
+        $validated = $request->validate([
+            'code' => 'sometimes|string|max:50|unique:vouchers,code,' . $id,
+            'discount_value' => 'sometimes|numeric|min:0',
+            'discount_type' => 'sometimes|in:percent,fixed',
+            'min_order_value' => 'sometimes|numeric|min:0',
+            'max_uses_per_user' => 'sometimes|integer|min:1',
+            'valid_from' => 'sometimes|date',
+            'valid_to' => 'sometimes|date',
+            'is_active' => 'boolean',
         ]);
 
-        return response()->json([
-            'message' => 'Tạo voucher thành công',
-            'data' => $voucher
-        ], 201);
+        $voucher->update($validated);
+
+        return response()->json(['data' => $voucher, 'message' => 'Cập nhật voucher thành công!']);
     }
 
-    public function show(Voucher $voucher)
+    /**
+     * [Admin] Xóa voucher.
+     */
+    public function destroy(int $id)
     {
-        //
-    }
+        $voucher = Voucher::findOrFail($id);
+        $voucher->delete();
 
-    public function update(Request $request, Voucher $voucher)
-    {
-        //
-    }
-
-    public function destroy(Voucher $voucher)
-    {
-        //
+        return response()->json(null, 204);
     }
 }

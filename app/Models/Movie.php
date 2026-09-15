@@ -17,6 +17,13 @@ class Movie extends Model
         'teaser_url',
         'duration_minutes',
         'status',
+        'description',
+        'genre',
+        'release_date',
+    ];
+
+    protected $casts = [
+        'release_date' => 'date',
     ];
 
     public function shows()

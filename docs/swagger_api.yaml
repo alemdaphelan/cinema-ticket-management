@@ -6,6 +6,12 @@ info:
 servers:
   - url: http://localhost:8000/api
     description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 tags:
   - name: Auth
     description: Xác thực người dùng
@@ -224,6 +230,8 @@ paths:
     post:
       tags: [Admin]
       summary: Tự động lấy thông tin phim từ TMDB
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
@@ -291,6 +299,8 @@ paths:
     post:
       tags: [Admin]
       summary: Tạo Combo bắp nước
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Created
@@ -298,6 +308,8 @@ paths:
     post:
       tags: [Admin]
       summary: Tạo Voucher (Chiến dịch mã giảm giá)
+      security:
+        - bearerAuth: []
       responses:
         '201':
           description: Created

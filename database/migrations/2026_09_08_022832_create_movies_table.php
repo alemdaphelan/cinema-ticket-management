@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('poster_url')->nullable();
             $table->string('teaser_url')->nullable();
             $table->integer('duration_minutes')->nullable();
-            $table->enum('status', ['now_showing', 'coming_soon', 'stopped'])->default('now_showing');
+            $table->enum('status', ['showing', 'coming_soon', 'stopped'])->default('showing');
             $table->timestamps();
         });
     }

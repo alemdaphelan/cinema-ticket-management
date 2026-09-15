@@ -70,7 +70,7 @@
                                     <div class="mt-6">
                                         <h3 class="text-sm font-semibold text-[var(--color-cinema-accent)] mb-3">🎥 Teaser / Trailer</h3>
                                         <div class="aspect-video rounded-xl overflow-hidden" style="background: var(--color-cinema-card);">
-                                            <iframe src="${movie.teaser_url}" class="w-full h-full" frameborder="0" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+                                            <iframe src="${movie.teaser_url}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                                         </div>
                                     </div>
                                 ` : ''}

@@ -1,4 +1,4 @@
-<x-layouts.app title="Chọn ghế - CineStar">
+<x-layouts.main title="Chọn ghế - CineStar">
     <div class="max-w-6xl mx-auto px-4 py-8">
         {{-- Header --}}
         <div class="flex items-center justify-between mb-6">
@@ -257,4 +257,4 @@
             });
         }
     </script>
-</x-layouts.app>
+</x-layouts.main>

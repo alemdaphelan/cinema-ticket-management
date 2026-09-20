@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 // === Auth ===
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('api.login');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -59,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/movies', [MovieController::class, 'store']);
         Route::put('/movies/{id}', [MovieController::class, 'update']);
         Route::delete('/movies/{id}', [MovieController::class, 'destroy']);
-        Route::post('/movies/fetch-tmdb', [MovieController::class, 'fetchFromTmdb']);
+        Route::post('/movies/fetch-tmdb', [MovieController::class, 'fetchTmdbList']);
 
         // Shows
         Route::get('/shows', [ShowController::class, 'index']);

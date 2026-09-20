@@ -1,5 +1,5 @@
-<x-layouts.app title="Lịch chiếu - CineStar">
-    <div class="max-w-7xl mx-auto px-4 py-8">
+<x-layouts.main title="Lịch chiếu phim - CineStar">
+    <div class="w-[95%] max-w-[1600px] mx-auto px-4 py-8">
         <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">📅 Lịch chiếu phim</h1>
 
         {{-- Date Tabs --}}

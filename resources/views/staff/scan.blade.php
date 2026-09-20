@@ -1,19 +1,20 @@
-<x-layouts.app title="Quét Mã QR - Nhân viên">
+<x-layouts.staff title="Quét Mã QR - Nhân viên">
     <div class="max-w-2xl mx-auto px-4 py-16">
         <div class="glass rounded-2xl p-8 text-center animate-fade-in-up">
-            <h1 class="text-2xl font-bold text-white mb-2">📱 Quét Mã QR Soát Vé</h1>
+            <h1 class="text-2xl font-bold text-white mb-2">Quét Mã QR Soát Vé</h1>
             <p class="text-[var(--color-cinema-text-muted)] mb-8">Dành cho nhân viên rạp chiếu</p>
 
-            <div class="mb-8">
-                <div id="reader" class="mx-auto overflow-hidden rounded-xl" style="max-width: 400px; border: 2px solid var(--color-cinema-border);"></div>
-                <button id="btn-start-scan" class="btn-primary mt-4" style="display: none;">Bắt đầu quét Camera</button>
-            </div>
+            <div id="scan-tools">
+                <div class="mb-8">
+                    <div id="reader" class="mx-auto overflow-hidden rounded-xl" style="max-width: 400px; border: 2px solid var(--color-cinema-border);"></div>
+                </div>
 
-            <div class="text-[var(--color-cinema-text-muted)] mb-4">HOẶC</div>
+                <div class="text-[var(--color-cinema-text-muted)] mb-4">HOẶC</div>
 
-            <div class="flex max-w-md mx-auto gap-2">
-                <input type="text" id="manual-qr" placeholder="Nhập dữ liệu QR bằng tay để test..." class="flex-1 px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
-                <button onclick="processQRData(document.getElementById('manual-qr').value)" class="btn-accent whitespace-nowrap px-6">Quét</button>
+                <div class="flex max-w-md mx-auto gap-2">
+                    <input type="text" id="manual-qr" placeholder="Nhập dữ liệu QR bằng tay để test..." class="flex-1 px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
+                    <button onclick="processQRData(document.getElementById('manual-qr').value)" class="btn-accent whitespace-nowrap px-6">Quét</button>
+                </div>
             </div>
 
             <div id="scan-result" class="mt-8 text-left hidden">
@@ -21,6 +22,7 @@
                 <div class="glass rounded-xl p-4 space-y-2 text-sm" id="result-info">
                     <!-- Ticket info will be populated here -->
                 </div>
+                <button onclick="resetScanner()" class="btn-primary mt-6 w-full py-3 font-bold text-center">Tiếp tục soát vé khác</button>
             </div>
         </div>
     </div>
@@ -28,10 +30,12 @@
     <!-- HTML5 QR Code Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script>
+        let html5QrcodeScanner = null;
+
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof Html5QrcodeScanner !== 'undefined') {
-                const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} });
-                scanner.render(onScanSuccess, onScanFailure);
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} });
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             } else {
                 document.getElementById('reader').innerHTML = '<p class="p-8 text-yellow-400">Không thể tải thư viện quét Camera, vui lòng dùng ô nhập tay để test.</p>';
             }
@@ -44,6 +48,15 @@
 
         function onScanFailure(error) {
             // handle scan failure, usually better to ignore and keep scanning.
+        }
+
+        function resetScanner() {
+            document.getElementById('scan-result').classList.add('hidden');
+            document.getElementById('scan-tools').style.display = 'block';
+            document.getElementById('manual-qr').value = '';
+            if (html5QrcodeScanner) {
+                // html5QrcodeScanner.resume(); // optionally resume if paused
+            }
         }
 
         function processQRData(qrString) {
@@ -66,8 +79,9 @@
                 resultContainer.classList.remove('hidden');
                 
                 if (ok) {
+                    document.getElementById('scan-tools').style.display = 'none';
                     alertBox.className = 'p-4 rounded-xl mb-4 bg-green-500/20 border border-green-500/50 text-green-400';
-                    alertBox.innerHTML = `<strong>✅ Thành công:</strong> ${data.message}`;
+                    alertBox.innerHTML = `<strong>Thành công:</strong> ${data.message}`;
                     
                     const o = data.data;
                     const startTime = new Date(o.show?.start_time);
@@ -82,7 +96,7 @@
                     `;
                 } else {
                     alertBox.className = 'p-4 rounded-xl mb-4 bg-red-500/20 border border-red-500/50 text-red-400';
-                    alertBox.innerHTML = `<strong>❌ Lỗi (${status}):</strong> ${data.message}`;
+                    alertBox.innerHTML = `<strong>Lỗi (${status}):</strong> ${data.message}`;
                     infoBox.innerHTML = '';
                     
                     if (data.data) {
@@ -104,4 +118,4 @@
             });
         }
     </script>
-</x-layouts.app>
+</x-layouts.staff>

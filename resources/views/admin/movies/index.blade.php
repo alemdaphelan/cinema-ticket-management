@@ -1,7 +1,10 @@
 <x-layouts.admin title="Quản lý Phim" header="🎥 Quản lý Phim">
     <div class="flex justify-between items-center mb-6">
         <div></div>
-        <a href="/admin/movies/create" class="btn-primary !py-2 !px-4 text-sm">+ Thêm phim mới</a>
+        <div class="flex gap-3">
+            <button onclick="fetchTmdb()" class="btn-primary !bg-purple-600 hover:!bg-purple-700 !py-2 !px-4 text-sm font-bold">🚀 Kéo dữ liệu từ TMDB</button>
+            <a href="/admin/movies/create" class="btn-primary !py-2 !px-4 text-sm">+ Thêm phim mới</a>
+        </div>
     </div>
 
     <div class="glass rounded-xl overflow-hidden">
@@ -63,6 +66,35 @@
             if (!confirm('Bạn có chắc muốn xóa phim này?')) return;
             fetch(`/api/admin/movies/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': window.CSRF_TOKEN, 'Accept': 'application/json' } })
             .then(() => loadMovies());
+        }
+
+        function fetchTmdb() {
+            if (!confirm('Bạn có chắc muốn kéo dữ liệu phim từ TMDB về không? Quá trình này có thể mất vài giây.')) return;
+            
+            // Show loading state on button
+            const btn = document.querySelector('button[onclick="fetchTmdb()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Đang kéo dữ liệu...';
+            btn.disabled = true;
+
+            fetch('/api/movies/fetch-tmdb', { 
+                method: 'POST', 
+                headers: { 'X-CSRF-TOKEN': window.CSRF_TOKEN, 'Accept': 'application/json' } 
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok) {
+                    alert('Thành công! Đã kéo phim từ TMDB về hệ thống.');
+                    loadMovies();
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể kéo dữ liệu'));
+                }
+            })
+            .catch(err => alert('Lỗi kết nối Server!'))
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
         }
     </script>
 </x-layouts.admin>

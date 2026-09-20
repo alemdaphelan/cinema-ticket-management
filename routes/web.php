@@ -8,6 +8,10 @@ Route::get('/', function () {
     return view('pages.home');
 })->name('home');
 
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
 // === Auth Web Routes ===
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
@@ -21,6 +25,10 @@ Route::middleware('guest')->group(function () {
     })->name('register');
 
     Route::post('/register', [AuthController::class, 'webRegister'])->name('register.submit');
+
+    Route::get('/forgot-password', function () {
+        return view('pages.auth.forgot-password');
+    })->name('password.request');
 });
 
 Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout')->middleware('auth');
@@ -56,6 +64,14 @@ Route::middleware('auth')->prefix('booking')->group(function () {
     Route::get('/history', function () {
         return view('pages.user.ticket-history');
     })->name('booking.history');
+});
+
+// === Profile & Settings ===
+Route::middleware('auth')->group(function () {
+    Route::get('/profile/settings', [App\Http\Controllers\UserController::class, 'settings'])->name('user.settings');
+    Route::post('/profile/settings', [App\Http\Controllers\UserController::class, 'updateSettings'])->name('user.settings.update');
+    Route::get('/profile/password', [App\Http\Controllers\UserController::class, 'password'])->name('user.password');
+    Route::post('/profile/password', [App\Http\Controllers\UserController::class, 'updatePassword'])->name('user.password.update');
 });
 
 // === Admin (cần login + role admin) ===
@@ -102,6 +118,10 @@ Route::middleware('auth')->prefix('staff')->group(function () {
     Route::get('/scan', function () {
         return view('staff.scan');
     })->name('staff.scan');
+    
+    Route::get('/booking', function () {
+        return redirect('/');
+    })->name('staff.booking');
 });
 
 // === Swagger API Docs ===

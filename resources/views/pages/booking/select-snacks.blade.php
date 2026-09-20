@@ -1,4 +1,4 @@
-<x-layouts.app title="Chọn bắp nước - CineStar">
+<x-layouts.main title="Chọn bắp nước - CineStar">
     <div class="max-w-4xl mx-auto px-4 py-8">
         <a href="javascript:history.back()" class="text-sm text-[var(--color-cinema-text-muted)] hover:text-white transition-colors">← Quay lại</a>
         <h1 class="text-2xl font-bold text-white mt-2 mb-6">🍿 Chọn bắp nước & combo</h1>
@@ -16,7 +16,7 @@
                     <div id="cart-items" class="space-y-2 text-sm"></div>
                     <div class="border-t border-[var(--color-cinema-border)] my-4"></div>
                     <div class="flex justify-between text-lg font-bold">
-                        <span>Tổng snacks</span>
+                        <span>Tổng bắp nước</span>
                         <span class="text-[var(--color-cinema-accent)]" id="snack-total">0đ</span>
                     </div>
 
@@ -122,4 +122,4 @@
             .catch(err => alert('Lỗi: ' + err.message));
         }
     </script>
-</x-layouts.app>
+</x-layouts.main>

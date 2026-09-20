@@ -279,6 +279,12 @@ class BookingController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        foreach ($orders as $order) {
+            if ($order->status === 'pending' && $order->hold_expires_at && now()->greaterThan($order->hold_expires_at)) {
+                $order->update(['status' => 'cancelled']);
+            }
+        }
+
         return response()->json(['data' => $orders]);
     }
 

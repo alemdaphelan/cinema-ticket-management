@@ -12,6 +12,12 @@ class MovieController extends Controller
      */
     public function publicIndex(Request $request)
     {
+        if (Movie::count() < 10) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('movies:fetch-tmdb');
+            } catch (\Exception $e) {}
+        }
+        
         $query = Movie::query();
 
         if ($request->has('status')) {
@@ -20,9 +26,17 @@ class MovieController extends Controller
             $query->whereIn('status', ['showing', 'coming_soon']);
         }
 
-        $movies = $query->orderBy('created_at', 'desc')->get();
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->input('search') . '%');
+        }
 
-        return response()->json(['data' => $movies]);
+        if ($request->filled('genre')) {
+            $query->where('genre', 'like', '%' . $request->input('genre') . '%');
+        }
+
+        $movies = $query->orderBy('created_at', 'desc')->paginate(12);
+
+        return response()->json($movies);
     }
 
     /**
@@ -162,27 +176,12 @@ class MovieController extends Controller
     }
 
     /**
-     * [Admin] Lấy thông tin phim từ TMDB (placeholder).
+     * [Admin] Kéo phim từ TMDB (hàng loạt).
      */
-    public function fetchFromTmdb(Request $request)
+    public function fetchTmdbList()
     {
-        $validated = $request->validate([
-            'tmdb_id' => 'required|string',
-        ]);
-
-        // Placeholder: Trả về mock data
-        // TODO: Tích hợp TMDB API thật khi có API key
-        return response()->json([
-            'data' => [
-                'tmdb_id' => $validated['tmdb_id'],
-                'title' => 'Phim từ TMDB #' . $validated['tmdb_id'],
-                'director' => 'Đạo diễn TMDB',
-                'poster_url' => 'https://via.placeholder.com/300x450',
-                'teaser_url' => '',
-                'duration_minutes' => 120,
-                'description' => 'Mô tả phim từ TMDB',
-            ],
-            'message' => 'Đây là mock data. Tích hợp TMDB API key để lấy data thật.',
-        ]);
+        \Illuminate\Support\Facades\Artisan::call('movies:fetch-tmdb');
+        return response()->json(['message' => 'Đã kéo thành công dữ liệu từ TMDB!']);
     }
+
 }

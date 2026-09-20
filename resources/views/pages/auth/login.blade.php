@@ -31,6 +31,7 @@
                             <input type="checkbox" name="remember" class="rounded border-gray-600">
                             Ghi nhớ đăng nhập
                         </label>
+                        <a href="/forgot-password" class="text-sm text-[var(--color-cinema-primary)] hover:text-[var(--color-cinema-primary-hover)] transition-colors">Quên mật khẩu?</a>
                     </div>
 
                     <button type="submit" class="btn-primary w-full text-center py-3 text-base">
@@ -43,31 +44,8 @@
                     <a href="/register" class="text-[var(--color-cinema-primary)] font-semibold hover:text-[var(--color-cinema-primary-hover)]">Đăng ký ngay</a>
                 </p>
 
-                <div class="mt-6 pt-6 border-t border-[var(--color-cinema-border)]">
-                    <p class="text-xs text-[var(--color-cinema-text-muted)] text-center mb-3">Tài khoản test:</p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="fillLogin('admin@cinema.com')" class="text-xs py-2 px-2 rounded-lg text-center transition-all hover:scale-105"
-                                style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
-                            👑 Admin
-                        </button>
-                        <button onclick="fillLogin('staff@cinema.com')" class="text-xs py-2 px-2 rounded-lg text-center transition-all hover:scale-105"
-                                style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
-                            👤 Staff
-                        </button>
-                        <button onclick="fillLogin('user@cinema.com')" class="text-xs py-2 px-2 rounded-lg text-center transition-all hover:scale-105"
-                                style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
-                            🎟️ User
-                        </button>
-                    </div>
-                </div>
+                <div class="mt-6"></div>
             </div>
         </div>
     </div>
-
-    <script>
-        function fillLogin(email) {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = 'password';
-        }
-    </script>
 </x-layouts.app>

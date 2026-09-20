@@ -19,6 +19,7 @@ class Movie extends Model
         'status',
         'description',
         'genre',
+        'age_rating',
         'release_date',
     ];
 

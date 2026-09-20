@@ -1,6 +1,6 @@
-<x-layouts.app title="Lịch sử vé - CineStar">
+<x-layouts.main title="Lịch sử vé - CineStar">
     <div class="max-w-4xl mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold text-white mb-6">📋 Lịch sử đặt vé</h1>
+        <h1 class="text-2xl font-bold text-white mb-6">Lịch sử đặt vé</h1>
 
         <div id="orders-list">
             <div class="text-center py-12 text-[var(--color-cinema-text-muted)]">
@@ -29,16 +29,16 @@
                 container.innerHTML = orders.map((o, i) => {
                     const startTime = new Date(o.show?.start_time);
                     const statusColors = { pending: 'text-yellow-400', paid: 'text-green-400', completed: 'text-gray-400', cancelled: 'text-red-400' };
-                    const statusLabels = { pending: '⏳ Đang chờ', paid: '✅ Đã thanh toán', completed: '☑️ Đã sử dụng', cancelled: '❌ Đã hủy' };
+                    const statusLabels = { pending: 'Đang chờ', paid: 'Đã thanh toán', completed: 'Đã sử dụng', cancelled: 'Đã hủy' };
 
                     return `
-                        <div class="glass rounded-xl p-5 mb-4 animate-fade-in-up" style="animation-delay: ${i * 0.1}s;">
+                        <a href="/booking/success/${o.id}" class="glass rounded-xl p-5 mb-4 block animate-fade-in-up hover:scale-[1.02] transition-transform cursor-pointer" style="animation-delay: ${i * 0.1}s;">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div>
                                     <h3 class="font-bold text-white">${o.show?.movie?.title || 'Phim'}</h3>
                                     <div class="text-sm text-[var(--color-cinema-text-muted)] mt-1 space-y-1">
-                                        <p>📅 ${startTime.toLocaleDateString('vi-VN')} • ${startTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})}</p>
-                                        <p>🏢 ${o.show?.room?.name || '—'} • Ghế: <span class="text-[var(--color-cinema-accent)]">${o.seats?.map(s => s.seat?.row_label + s.seat?.seat_number).join(', ') || '—'}</span></p>
+                                        <p>${startTime.toLocaleDateString('vi-VN')} • ${startTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})}</p>
+                                        <p>${o.show?.room?.name || '—'} • Ghế: <span class="text-[var(--color-cinema-accent)]">${o.seats?.map(s => s.seat?.row_label + s.seat?.seat_number).join(', ') || '—'}</span></p>
                                     </div>
                                 </div>
                                 <div class="text-right">
@@ -47,18 +47,7 @@
                                 </div>
                             </div>
 
-                            ${o.status === 'paid' && o.qr_code ? `
-                                <div class="mt-4 pt-4 border-t border-[var(--color-cinema-border)]">
-                                    <button onclick="toggleQR(this, '${o.qr_code.replace(/'/g, "\\'")}')"
-                                            class="text-sm text-[var(--color-cinema-primary)] hover:text-[var(--color-cinema-primary-hover)] font-medium">
-                                        📱 Hiện mã QR
-                                    </button>
-                                    <div class="qr-container hidden mt-3 text-center">
-                                        <canvas class="qr-canvas inline-block"></canvas>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
+                        </a>
                     `;
                 }).join('');
             });
@@ -80,4 +69,4 @@
             }
         }
     </script>
-</x-layouts.app>
+</x-layouts.main>

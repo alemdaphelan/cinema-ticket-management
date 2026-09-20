@@ -107,6 +107,20 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    type: { type: string, enum: [regular, vip, couple] }
+                    status: { type: string, enum: [available, held, booked] }
+                    grid_row: { type: integer }
+                    grid_col: { type: integer }
+                    is_active: { type: boolean }
   /snacks:
     get:
       tags: [Public]
@@ -118,7 +132,7 @@ paths:
     post:
       tags: [Booking]
       summary: Bước 2 - Chọn ghế & Giữ ghế (10 phút)
-      description: Tạo order trạng thái pending, hẹn giờ 10 phút nhả ghế. Khóa ghế bằng Database Lock.
+      description: Tạo order trạng thái pending, hẹn giờ 10 phút nhả ghế. Khóa trực tiếp trên bảng `seats` bằng Database Pessimistic Lock (lockForUpdate) để chống bán trùng vé.
       requestBody:
         content:
           application/json:
@@ -193,7 +207,7 @@ paths:
               properties:
                 payment_method:
                   type: string
-                  enum: [vnpay, momo]
+                  enum: [vnpay, momo, cash]
       responses:
         '200':
           description: Trả về URL cổng thanh toán

@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('show_id')->constrained()->cascadeOnDelete();
             $table->foreignId('voucher_id')->nullable()->constrained()->nullOnDelete();
             $table->decimal('total_amount', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'cancelled', 'refunded'])->default('pending');
-            $table->enum('payment_method', ['credit_card', 'cash', 'e_wallet', 'bank_transfer'])->nullable();
+            $table->enum('status', ['pending', 'paid', 'completed', 'cancelled', 'refunded'])->default('pending');
+            $table->enum('payment_method', ['credit_card', 'cash', 'e_wallet', 'bank_transfer', 'vnpay', 'momo'])->nullable();
             $table->text('qr_code')->nullable();
             $table->timestamp('hold_expires_at')->nullable();
             $table->timestamps();

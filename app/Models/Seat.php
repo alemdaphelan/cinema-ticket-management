@@ -14,6 +14,9 @@ class Seat extends Model
         'row_label',
         'seat_number',
         'type',
+        'grid_row',
+        'grid_col',
+        'is_active',
     ];
 
     public function room()

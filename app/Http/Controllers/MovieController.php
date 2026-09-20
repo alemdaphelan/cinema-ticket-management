@@ -51,9 +51,9 @@ class MovieController extends Controller
             return response()->json(['message' => 'TMDB API key is not configured.'], 500);
         }
 
-        $response = \Illuminate\Support\Facades\Http::get("https://api.themoviedb.org/3/movie/{$tmdbId}", [
+        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get("https://api.themoviedb.org/3/movie/{$tmdbId}", [
             'api_key' => $apiKey,
-            'language' => 'vi-VN' // or 'en-US'
+            'language' => 'vi'
         ]);
 
         if ($response->failed()) {
@@ -62,8 +62,8 @@ class MovieController extends Controller
 
         $data = $response->json();
 
-        // Optional: you can also fetch credits to get director
-        $creditsResponse = \Illuminate\Support\Facades\Http::get("https://api.themoviedb.org/3/movie/{$tmdbId}/credits", [
+        // Get Credits for Director/Cast
+        $creditsResponse = \Illuminate\Support\Facades\Http::withoutVerifying()->get("https://api.themoviedb.org/3/movie/{$tmdbId}/credits", [
             'api_key' => $apiKey
         ]);
 

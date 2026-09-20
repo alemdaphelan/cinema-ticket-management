@@ -35,7 +35,14 @@ class BookingController extends Controller
 
         try {
             $order = DB::transaction(function () use ($showId, $seatIds, $userId, $show) {
-                $lockedSeats = OrderSeat::whereIn('seat_id', $seatIds)
+                // Lock trực tiếp trên bảng seats (Tránh double booking khi chưa có dữ liệu OrderSeat)
+                $lockedPhysicalSeats = \App\Models\Seat::whereIn('id', $seatIds)->lockForUpdate()->get();
+
+                if ($lockedPhysicalSeats->count() !== count($seatIds)) {
+                    throw new Exception('Một hoặc nhiều ghế không tồn tại!');
+                }
+
+                $alreadyBooked = OrderSeat::whereIn('seat_id', $seatIds)
                     ->whereHas('order', function ($q) use ($showId) {
                         $q->where('show_id', $showId)
                           ->where(function ($query) {
@@ -46,10 +53,9 @@ class BookingController extends Controller
                                     });
                           });
                     })
-                    ->lockForUpdate()
-                    ->get();
+                    ->exists();
 
-                if ($lockedSeats->isNotEmpty()) {
+                if ($alreadyBooked) {
                     throw new Exception('Một trong các ghế bạn chọn đã có người đặt!');
                 }
 
@@ -65,14 +71,13 @@ class BookingController extends Controller
                 ]);
 
                 $totalAmount = 0;
-                foreach ($seatIds as $seatId) {
-                    $seat = \App\Models\Seat::find($seatId);
+                foreach ($lockedPhysicalSeats as $seat) {
                     $seatPrice = $seat->type === 'vip' ? $basePrice * 1.5 : $basePrice;
                     $totalAmount += $seatPrice;
 
                     OrderSeat::create([
                         'order_id' => $order->id,
-                        'seat_id' => $seatId,
+                        'seat_id' => $seat->id,
                         'price' => $seatPrice,
                     ]);
                 }
@@ -222,38 +227,46 @@ class BookingController extends Controller
      */
     public function pay(Request $request, int $orderId)
     {
-        $order = Order::where('id', $orderId)
-            ->where('status', 'pending')
-            ->where('hold_expires_at', '>', now())
-            ->firstOrFail();
-
         $validated = $request->validate([
             'payment_method' => 'required|in:vnpay,momo,cash',
         ]);
 
-        // Mock payment: Thanh toán luôn thành công
-        $qrContent = json_encode([
-            'order_id' => $order->id,
-            'code' => 'CINEMA-' . strtoupper(Str::random(8)),
-            'movie' => $order->show->movie->title ?? '',
-            'time' => $order->show->start_time ?? '',
-        ]);
+        try {
+            return DB::transaction(function () use ($orderId, $validated) {
+                // Lock row order để tranh chấp với ReleaseSeatJob
+                $order = Order::where('id', $orderId)->lockForUpdate()->firstOrFail();
 
-        $order->update([
-            'status' => 'paid',
-            'payment_method' => $validated['payment_method'],
-            'qr_code' => $qrContent,
-        ]);
+                if ($order->status !== 'pending' || $order->hold_expires_at <= now()) {
+                    return response()->json(['message' => 'Đơn hàng đã hết hạn hoặc không ở trạng thái chờ thanh toán.'], 400);
+                }
 
-        return response()->json([
-            'message' => 'Thanh toán thành công!',
-            'data' => [
-                'order_id' => $order->id,
-                'status' => 'paid',
-                'qr_code' => $qrContent,
-                'total_amount' => $order->total_amount,
-            ],
-        ]);
+                // Mock payment: Thanh toán luôn thành công
+                $qrContent = json_encode([
+                    'order_id' => $order->id,
+                    'code' => 'CINEMA-' . strtoupper(Str::random(8)),
+                    'movie' => $order->show->movie->title ?? '',
+                    'time' => $order->show->start_time ?? '',
+                ]);
+
+                $order->update([
+                    'status' => 'paid',
+                    'payment_method' => $validated['payment_method'],
+                    'qr_code' => $qrContent,
+                ]);
+
+                return response()->json([
+                    'message' => 'Thanh toán thành công!',
+                    'data' => [
+                        'order_id' => $order->id,
+                        'status' => 'paid',
+                        'qr_code' => $qrContent,
+                        'total_amount' => $order->total_amount,
+                    ],
+                ]);
+            });
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

@@ -22,9 +22,12 @@ class ReleaseSeatJob implements ShouldQueue
 
     public function handle(): void
     {
-        $order = Order::find($this->orderId);
-        if ($order && $order->status === 'pending') {
-            $order->update(['status' => 'cancelled']);
-        }
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            $order = Order::where('id', $this->orderId)->lockForUpdate()->first();
+            
+            if ($order && $order->status === 'pending') {
+                $order->update(['status' => 'cancelled']);
+            }
+        });
     }
 }

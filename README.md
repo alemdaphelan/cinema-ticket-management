@@ -1,10 +1,8 @@
 # Cinema Ticket Management API
 
-Dự án API Quản lý vé xem phim (Cinema Ticket Management) được xây dựng trên nền tảng Laravel.
+Dự án API Quản lý vé xem phim được xây dựng trên nền tảng Laravel.
 
-## Hướng dẫn cài đặt cho người mới (khi clone từ Github về)
-
-Khi một người khác clone project này về máy, họ **KHÔNG THỂ** chạy lệnh `php artisan serve` ngay lập tức được. Lý do là vì các thư viện (vendor), file cấu hình môi trường (`.env`) và file database (`database.sqlite`) không được đẩy lên Github (do nằm trong `.gitignore`).
+## Hướng dẫn cài đặt khi clone từ Github về
 
 Để chạy được dự án sau khi clone, cần thực hiện đúng theo các bước sau:
 

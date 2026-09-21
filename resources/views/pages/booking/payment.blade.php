@@ -31,6 +31,14 @@
 
             {{-- Right Column: Voucher & Payment Methods --}}
             <div class="space-y-6">
+                {{-- Payment Details Summary --}}
+                <div class="glass rounded-2xl p-6">
+                    <h3 class="font-bold text-white mb-4 text-lg border-b border-[var(--color-cinema-border)] pb-3">Chi tiết thanh toán</h3>
+                    <div id="payment-breakdown" class="space-y-3 text-sm mt-4">
+                        <div class="animate-pulse flex justify-between"><div class="h-4 bg-[var(--color-cinema-border)] rounded w-24"></div><div class="h-4 bg-[var(--color-cinema-border)] rounded w-20"></div></div>
+                    </div>
+                </div>
+
                 {{-- Voucher --}}
                 <div class="glass rounded-2xl p-6">
                     <h3 class="font-bold text-white mb-4 text-lg border-b border-[var(--color-cinema-border)] pb-3">Mã giảm giá</h3>
@@ -205,6 +213,16 @@
                 <div class="flex justify-between gap-8"><span class="text-[var(--color-cinema-text-muted)]">Tiền vé</span><span class="text-white">${seatsTotal.toLocaleString('vi-VN')}đ</span></div>
                 <div class="flex justify-between gap-8"><span class="text-[var(--color-cinema-text-muted)]">Bắp nước</span><span class="text-white">${snacksTotal.toLocaleString('vi-VN')}đ</span></div>
                 ${o.voucher_id ? `<div class="flex justify-between gap-8 text-green-400"><span>Giảm giá</span><span>-${discount.toLocaleString('vi-VN')}đ</span></div>` : ''}
+            `;
+
+            document.getElementById('payment-breakdown').innerHTML = `
+                <div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Tổng tiền vé</span><span class="text-white font-medium">${seatsTotal.toLocaleString('vi-VN')}đ</span></div>
+                <div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Tổng bắp nước</span><span class="text-white font-medium">${snacksTotal.toLocaleString('vi-VN')}đ</span></div>
+                ${o.voucher_id ? `<div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Giảm giá</span><span class="text-green-400 font-medium">-${discount.toLocaleString('vi-VN')}đ</span></div>` : ''}
+                <div class="border-t border-[var(--color-cinema-border)] my-2 pt-3 flex justify-between items-center">
+                    <span class="font-bold text-white text-base">Thành tiền</span>
+                    <span class="font-bold text-[var(--color-cinema-accent)] text-lg">${Number(o.total_amount).toLocaleString('vi-VN')}đ</span>
+                </div>
             `;
 
             document.getElementById('bottom-total-price').textContent = `${Number(o.total_amount).toLocaleString('vi-VN')}đ`;

@@ -328,5 +328,7 @@
             }
         });
     </script>
+
+    <x-chatbot />
 </body>
 </html>

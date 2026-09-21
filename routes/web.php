@@ -124,6 +124,9 @@ Route::middleware('auth')->prefix('staff')->group(function () {
     })->name('staff.booking');
 });
 
+// === Chatbot ===
+Route::post('/chatbot/chat', [App\Http\Controllers\ChatbotController::class, 'chat'])->name('chatbot.chat');
+
 // === Swagger API Docs ===
 Route::get('/api/docs', function () {
     return view('swagger');

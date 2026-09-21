@@ -244,8 +244,6 @@ class BookingController extends Controller
                 $qrContent = json_encode([
                     'order_id' => $order->id,
                     'code' => 'CINEMA-' . strtoupper(Str::random(8)),
-                    'movie' => $order->show->movie->title ?? '',
-                    'time' => $order->show->start_time ?? '',
                 ]);
 
                 $order->update([

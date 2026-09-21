@@ -1,21 +1,21 @@
-<x-layouts.admin title="Dashboard - Admin" header="📊 Dashboard">
+<x-layouts.admin title="Dashboard - Admin" header="Dashboard">
     <div class="space-y-6">
         {{-- Stats Cards --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="stats-grid">
             <div class="glass rounded-xl p-5 animate-fade-in-up">
-                <p class="text-sm text-[var(--color-cinema-text-muted)]">💰 Doanh thu hôm nay</p>
+                <p class="text-sm text-[var(--color-cinema-text-muted)]">Doanh thu hôm nay</p>
                 <p class="text-2xl font-bold text-[var(--color-cinema-accent)] mt-2" id="stat-revenue">—</p>
             </div>
             <div class="glass rounded-xl p-5 animate-fade-in-up" style="animation-delay: 0.1s;">
-                <p class="text-sm text-[var(--color-cinema-text-muted)]">🎟️ Vé bán hôm nay</p>
+                <p class="text-sm text-[var(--color-cinema-text-muted)]">Vé bán hôm nay</p>
                 <p class="text-2xl font-bold text-green-400 mt-2" id="stat-tickets">—</p>
             </div>
             <div class="glass rounded-xl p-5 animate-fade-in-up" style="animation-delay: 0.2s;">
-                <p class="text-sm text-[var(--color-cinema-text-muted)]">🎬 Phim đang chiếu</p>
+                <p class="text-sm text-[var(--color-cinema-text-muted)]">Phim đang chiếu</p>
                 <p class="text-2xl font-bold text-blue-400 mt-2" id="stat-movies">—</p>
             </div>
             <div class="glass rounded-xl p-5 animate-fade-in-up" style="animation-delay: 0.3s;">
-                <p class="text-sm text-[var(--color-cinema-text-muted)]">📊 Tổng doanh thu</p>
+                <p class="text-sm text-[var(--color-cinema-text-muted)]">Tổng doanh thu</p>
                 <p class="text-2xl font-bold text-purple-400 mt-2" id="stat-total">—</p>
             </div>
         </div>
@@ -23,7 +23,7 @@
         {{-- Recent Orders --}}
         <div class="glass rounded-xl p-6">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-white">📋 Đơn hàng gần đây</h3>
+                <h3 class="font-bold text-white">Đơn hàng gần đây</h3>
                 <a href="/admin/orders" class="text-sm text-[var(--color-cinema-primary)]">Xem tất cả →</a>
             </div>
             <div class="overflow-x-auto">

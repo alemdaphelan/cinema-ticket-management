@@ -1,4 +1,4 @@
-<x-layouts.admin title="Quản lý Bắp nước" header="🍿 Quản lý Bắp nước">
+<x-layouts.admin title="Quản lý Bắp nước" header="Quản lý Bắp nước">
     <div class="glass rounded-xl overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">

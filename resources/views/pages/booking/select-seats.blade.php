@@ -52,7 +52,7 @@
             {{-- Sidebar --}}
             <div class="lg:w-80 mt-6 lg:mt-0">
                 <div class="glass rounded-2xl p-6 sticky top-20">
-                    <h3 class="font-bold text-white mb-4">🎟️ Thông tin đặt vé</h3>
+                    <h3 class="font-bold text-white mb-4">Thông tin đặt vé</h3>
 
                     <div id="booking-summary">
                         <div class="space-y-3 text-sm">

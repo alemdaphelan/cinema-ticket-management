@@ -33,7 +33,11 @@
                     <input type="text" id="genre" placeholder="VD: Hành động, Tâm lý" class="w-full px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2 text-[var(--color-cinema-text-muted)]">URL Poster</label>
+                    <label class="block text-sm font-medium mb-2 text-[var(--color-cinema-text-muted)]">Poster (Tải file lên)</label>
+                    <input type="file" id="poster_file" accept="image/*" class="w-full px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[var(--color-cinema-text-muted)]">Hoặc nhập URL Poster</label>
                     <input type="url" id="poster_url" class="w-full px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
                 </div>
                 <div>
@@ -52,19 +56,25 @@
     <script>
         function submitMovie(e) {
             e.preventDefault();
+            let formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('director', document.getElementById('director').value);
+            formData.append('duration_minutes', document.getElementById('duration').value);
+            formData.append('status', document.getElementById('status').value);
+            formData.append('genre', document.getElementById('genre').value);
+            formData.append('poster_url', document.getElementById('poster_url').value);
+            formData.append('teaser_url', document.getElementById('teaser_url').value);
+            formData.append('description', document.getElementById('description').value);
+            
+            let posterFile = document.getElementById('poster_file').files[0];
+            if (posterFile) {
+                formData.append('poster', posterFile);
+            }
+
             fetch('/api/admin/movies', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.CSRF_TOKEN, 'Accept': 'application/json' },
-                body: JSON.stringify({
-                    title: document.getElementById('title').value,
-                    director: document.getElementById('director').value,
-                    duration_minutes: parseInt(document.getElementById('duration').value),
-                    status: document.getElementById('status').value,
-                    genre: document.getElementById('genre').value,
-                    poster_url: document.getElementById('poster_url').value,
-                    teaser_url: document.getElementById('teaser_url').value,
-                    description: document.getElementById('description').value,
-                }),
+                headers: { 'X-CSRF-TOKEN': window.CSRF_TOKEN, 'Accept': 'application/json' },
+                body: formData,
             })
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {

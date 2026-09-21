@@ -4,6 +4,14 @@
             <h1 class="text-2xl font-bold text-white mb-2">Quét Mã QR Soát Vé</h1>
             <p class="text-[var(--color-cinema-text-muted)] mb-8">Dành cho nhân viên rạp chiếu</p>
 
+            <style>
+                /* Làm sáng icon đen mặc định của html5-qrcode trên nền tối */
+                #reader img, #reader svg {
+                    filter: invert(1);
+                    opacity: 0.7;
+                }
+            </style>
+
             <div id="scan-tools">
                 <div class="mb-8">
                     <div id="reader" class="mx-auto overflow-hidden rounded-xl" style="max-width: 400px; border: 2px solid var(--color-cinema-border);"></div>
@@ -12,7 +20,7 @@
                 <div class="text-[var(--color-cinema-text-muted)] mb-4">HOẶC</div>
 
                 <div class="flex max-w-md mx-auto gap-2">
-                    <input type="text" id="manual-qr" placeholder="Nhập dữ liệu QR bằng tay để test..." class="flex-1 px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
+                    <input type="text" id="manual-qr" placeholder="Nhập dữ liệu QR" class="flex-1 px-4 py-3 rounded-lg text-white text-sm focus:outline-none" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
                     <button onclick="processQRData(document.getElementById('manual-qr').value)" class="btn-accent whitespace-nowrap px-6">Quét</button>
                 </div>
             </div>
@@ -34,7 +42,11 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof Html5QrcodeScanner !== 'undefined') {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} });
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                    fps: 20,
+                    // Bỏ qrbox để quét toàn bộ khung hình, giúp người dùng có thể để điện thoại ra xa cho camera dễ lấy nét
+                    formatsToSupport: [ 0 ], // 0 = QR_CODE (chỉ quét QR code để tăng tốc độ)
+                });
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             } else {
                 document.getElementById('reader').innerHTML = '<p class="p-8 text-yellow-400">Không thể tải thư viện quét Camera, vui lòng dùng ô nhập tay để test.</p>';
@@ -96,7 +108,7 @@
                     `;
                 } else {
                     alertBox.className = 'p-4 rounded-xl mb-4 bg-red-500/20 border border-red-500/50 text-red-400';
-                    alertBox.innerHTML = `<strong>Lỗi (${status}):</strong> ${data.message}`;
+                    alertBox.innerHTML = `<strong>Cảnh báo:</strong> ${data.message}`;
                     infoBox.innerHTML = '';
                     
                     if (data.data) {

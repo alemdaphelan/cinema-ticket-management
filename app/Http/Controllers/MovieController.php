@@ -124,6 +124,7 @@ class MovieController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'director' => 'nullable|string|max:255',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'poster_url' => 'nullable|string',
             'teaser_url' => 'nullable|string',
             'duration_minutes' => 'required|integer|min:1',
@@ -133,6 +134,11 @@ class MovieController extends Controller
             'genre' => 'nullable|string',
             'release_date' => 'nullable|date',
         ]);
+
+        if ($request->hasFile('poster')) {
+            $path = $request->file('poster')->store('movies', 'public');
+            $validated['poster_url'] = '/storage/' . $path;
+        }
 
         $movie = Movie::create($validated);
 
@@ -149,6 +155,7 @@ class MovieController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'director' => 'nullable|string|max:255',
+            'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'poster_url' => 'nullable|string',
             'teaser_url' => 'nullable|string',
             'duration_minutes' => 'sometimes|integer|min:1',
@@ -158,6 +165,16 @@ class MovieController extends Controller
             'genre' => 'nullable|string',
             'release_date' => 'nullable|date',
         ]);
+
+        if ($request->hasFile('poster')) {
+            // Delete old poster if exists and is a local file
+            if ($movie->poster_url && str_starts_with($movie->poster_url, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $movie->poster_url);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('poster')->store('movies', 'public');
+            $validated['poster_url'] = '/storage/' . $path;
+        }
 
         $movie->update($validated);
 

@@ -125,6 +125,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadOrderDetail();
+            updatePaymentUI(); // Fix viền đỏ không hiện lúc đầu
         });
 
         function updatePaymentUI() {

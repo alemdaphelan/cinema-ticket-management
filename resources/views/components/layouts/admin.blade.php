@@ -25,31 +25,31 @@
 
                 <nav class="space-y-1">
                     <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/dashboard') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>📊</span> Dashboard
+                        Dashboard
                     </a>
                     <a href="/admin/movies" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/movies*') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>🎥</span> Quản lý Phim
+                        Quản lý Phim
                     </a>
                     <a href="/admin/shows" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/shows*') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>📅</span> Suất chiếu
+                        Suất chiếu
                     </a>
                     <a href="/admin/snacks" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/snacks*') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>🍿</span> Bắp nước
+                        Bắp nước
                     </a>
                     <a href="/admin/vouchers" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/vouchers*') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>🎟️</span> Voucher
+                        Voucher
                     </a>
                     <a href="/admin/orders" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {{ request()->is('admin/orders*') ? 'active' : 'text-[var(--color-cinema-text-muted)]' }}">
-                        <span>📋</span> Đơn hàng
+                        Đơn hàng
                     </a>
 
                     <div class="border-t border-[var(--color-cinema-border)] my-4"></div>
 
                     <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">
-                        <span>🌐</span> Xem trang chủ
+                        Xem trang chủ
                     </a>
                     <a href="/staff/scan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">
-                        <span>📱</span> Quét vé
+                        Quét vé
                     </a>
                 </nav>
             </div>
@@ -88,12 +88,12 @@
                             <span class="text-lg font-bold gradient-text">CineStar Admin</span>
                         </a>
                         <nav class="space-y-1">
-                            <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">📊 Dashboard</a>
-                            <a href="/admin/movies" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">🎥 Quản lý Phim</a>
-                            <a href="/admin/shows" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">📅 Suất chiếu</a>
-                            <a href="/admin/snacks" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">🍿 Bắp nước</a>
-                            <a href="/admin/vouchers" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">🎟️ Voucher</a>
-                            <a href="/admin/orders" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">📋 Đơn hàng</a>
+                            <a href="/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Dashboard</a>
+                            <a href="/admin/movies" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Quản lý Phim</a>
+                            <a href="/admin/shows" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Suất chiếu</a>
+                            <a href="/admin/snacks" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Bắp nước</a>
+                            <a href="/admin/vouchers" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Voucher</a>
+                            <a href="/admin/orders" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Đơn hàng</a>
                         </nav>
                     </div>
                 </div>

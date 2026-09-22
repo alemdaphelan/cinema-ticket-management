@@ -23,9 +23,6 @@
                     <button onclick="submitSnacks()" class="btn-primary w-full text-center py-3 mt-4 text-sm">
                         Tiếp tục thanh toán
                     </button>
-                    <a href="/booking/payment/{{ $orderId }}" class="block text-center text-sm text-[var(--color-cinema-text-muted)] mt-3 hover:text-white transition-colors">
-                        Bỏ qua →
-                    </a>
                 </div>
             </div>
         </div>
@@ -137,10 +134,5 @@
             })
             .catch(err => alert('Lỗi: ' + err.message));
         }
-
-        // Bỏ qua button
-        document.querySelector('a[href^="/booking/payment"]').addEventListener('click', function() {
-            isSubmitted = true;
-        });
     </script>
 </x-layouts.main>

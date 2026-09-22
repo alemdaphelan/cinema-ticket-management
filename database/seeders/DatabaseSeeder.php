@@ -43,11 +43,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // === Rooms & Seats ===
-        $rooms = [
-            ['name' => 'Phòng 1 - Standard'],
-            ['name' => 'Phòng 2 - Premium'],
-            ['name' => 'Phòng 3 - VIP'],
-        ];
+        $rooms = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $rooms[] = ['name' => "Phòng $i - " . ($i % 3 === 0 ? 'VIP' : 'Standard')];
+        }
 
         foreach ($rooms as $roomData) {
             $room = Room::create($roomData);
@@ -74,27 +73,37 @@ class DatabaseSeeder extends Seeder
         $showingMovies = Movie::where('status', 'showing')->get();
         $allRooms = Room::all();
         $times = ['08:00', '10:30', '13:00', '15:30', '18:00', '20:30'];
-        $prices = [75000, 85000, 95000];
+        $prices = [75000, 85000, 95000, 100000, 120000];
 
+        // Assign exactly 1 or 2 shows per movie per day, avoiding room conflicts
         for ($day = 0; $day < 3; $day++) {
             $date = now()->addDays($day)->format('Y-m-d');
+            $slotIndex = 0;
+            $maxSlots = $allRooms->count() * count($times);
 
-            foreach ($allRooms as $roomIndex => $room) {
-                foreach (array_slice($times, 0, 3) as $timeIndex => $time) {
-                    $movieIndex = ($roomIndex * 3 + $timeIndex + $day) % $showingMovies->count();
-                    $movie = $showingMovies[$movieIndex];
-
-                    $startTime = \Carbon\Carbon::parse("{$date} {$time}");
-                    $endTime = $startTime->copy()->addMinutes($movie->duration_minutes + 20);
-
-                    Show::create([
-                        'movie_id' => $movie->id,
-                        'room_id' => $room->id,
-                        'start_time' => $startTime,
-                        'end_time' => $endTime,
-                        'price' => $prices[$roomIndex] ?? 75000,
-                    ]);
+            foreach ($showingMovies as $movie) {
+                // Each movie gets 1 show per day, unless we run out of slots
+                if ($slotIndex >= $maxSlots) {
+                    break; 
                 }
+
+                $roomIndex = floor($slotIndex / count($times));
+                $timeIndex = $slotIndex % count($times);
+                $room = $allRooms[$roomIndex];
+                $time = $times[$timeIndex];
+
+                $startTime = \Carbon\Carbon::parse("{$date} {$time}");
+                $endTime = $startTime->copy()->addMinutes($movie->duration_minutes + 20);
+
+                Show::create([
+                    'movie_id' => $movie->id,
+                    'room_id' => $room->id,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'price' => $prices[$roomIndex % count($prices)] ?? 75000,
+                ]);
+
+                $slotIndex++;
             }
         }
 

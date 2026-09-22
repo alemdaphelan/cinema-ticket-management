@@ -279,6 +279,21 @@
             });
         }
 
+        let isSubmitted = false;
+
+        window.addEventListener('pagehide', function() {
+            if (!isSubmitted && orderData && orderData.status === 'pending') {
+                fetch(`/api/orders/${orderId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': window.CSRF_TOKEN,
+                        'Accept': 'application/json'
+                    },
+                    keepalive: true
+                });
+            }
+        });
+
         function processPayment() {
             const method = document.querySelector('input[name="payment_method"]:checked').value;
             const btn = document.getElementById('btn-pay');
@@ -293,6 +308,7 @@
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
                 if (ok) {
+                    isSubmitted = true;
                     clearInterval(countdownInterval);
                     window.location.href = `/booking/success/${orderId}`;
                 } else {

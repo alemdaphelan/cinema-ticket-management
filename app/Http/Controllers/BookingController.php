@@ -268,6 +268,28 @@ class BookingController extends Controller
     }
 
     /**
+     * Hủy đơn hàng ngay lập tức (khi người dùng thoát trang)
+     */
+    public function cancelOrder(Request $request, int $orderId)
+    {
+        try {
+            DB::transaction(function () use ($orderId, $request) {
+                $order = Order::where('id', $orderId)
+                    ->where('user_id', $request->user()->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($order->status === 'pending') {
+                    $order->update(['status' => 'cancelled']);
+                }
+            });
+            return response()->json(['message' => 'Đã hủy đơn hàng']);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Lịch sử đặt vé của user.
      */
     public function orderHistory(Request $request)

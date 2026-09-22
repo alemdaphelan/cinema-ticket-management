@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/snacks', [BookingController::class, 'addSnacks']);
         Route::post('/{id}/voucher', [BookingController::class, 'applyVoucher']);
         Route::post('/{id}/pay', [BookingController::class, 'pay']);
+        Route::post('/{id}/cancel', [BookingController::class, 'cancelOrder']);
         Route::get('/history', [BookingController::class, 'orderHistory']);
         Route::get('/{id}', [BookingController::class, 'orderDetail']);
     });

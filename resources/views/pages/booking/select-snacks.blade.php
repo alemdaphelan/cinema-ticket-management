@@ -92,6 +92,21 @@
             document.getElementById('snack-total').textContent = total.toLocaleString('vi-VN') + 'đ';
         }
 
+        let isSubmitted = false;
+
+        window.addEventListener('pagehide', function() {
+            if (!isSubmitted && orderId) {
+                fetch(`/api/orders/${orderId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': window.CSRF_TOKEN,
+                        'Accept': 'application/json'
+                    },
+                    keepalive: true
+                });
+            }
+        });
+
         function submitSnacks() {
             const snackItems = [];
             for (const [id, qty] of Object.entries(cart)) {
@@ -101,6 +116,7 @@
             }
 
             if (snackItems.length === 0) {
+                isSubmitted = true;
                 window.location.href = `/booking/payment/${orderId}`;
                 return;
             }
@@ -116,9 +132,15 @@
             })
             .then(res => res.json())
             .then(() => {
+                isSubmitted = true;
                 window.location.href = `/booking/payment/${orderId}`;
             })
             .catch(err => alert('Lỗi: ' + err.message));
         }
+
+        // Bỏ qua button
+        document.querySelector('a[href^="/booking/payment"]').addEventListener('click', function() {
+            isSubmitted = true;
+        });
     </script>
 </x-layouts.main>

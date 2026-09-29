@@ -15,19 +15,25 @@ class ShowController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        $query = Show::with(['movie', 'room']);
+        $movieId = $request->input('movie_id', 'all');
+        $date = $request->input('date', 'all');
+        $cacheKey = "shows_index_{$movieId}_{$date}";
 
-        if ($request->has('movie_id')) {
-            $query->where('movie_id', $request->input('movie_id'));
-        }
+        $shows = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(5), function () use ($request) {
+            $query = Show::with(['movie', 'room']);
 
-        if ($request->has('date')) {
-            $query->whereDate('start_time', $request->input('date'));
-        } else {
-            $query->where('start_time', '>=', now());
-        }
+            if ($request->has('movie_id')) {
+                $query->where('movie_id', $request->input('movie_id'));
+            }
 
-        $shows = $query->orderBy('start_time', 'asc')->get();
+            if ($request->has('date')) {
+                $query->whereDate('start_time', $request->input('date'));
+            } else {
+                $query->where('start_time', '>=', now());
+            }
+
+            return $query->orderBy('start_time', 'asc')->get()->toArray();
+        });
 
         return response()->json(['data' => $shows]);
     }

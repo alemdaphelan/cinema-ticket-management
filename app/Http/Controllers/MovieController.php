@@ -12,23 +12,32 @@ class MovieController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        $query = Movie::query();
+        $status = $request->input('status', 'showing_coming_soon');
+        $search = $request->input('search', '');
+        $genre = $request->input('genre', '');
+        $page = $request->input('page', 1);
 
-        if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
-        } else {
-            $query->whereIn('status', ['showing', 'coming_soon']);
-        }
+        $cacheKey = "movies_index_{$status}_{$search}_{$genre}_{$page}";
 
-        if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->input('search') . '%');
-        }
+        $movies = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            $query = Movie::query();
 
-        if ($request->filled('genre')) {
-            $query->where('genre', 'like', '%' . $request->input('genre') . '%');
-        }
+            if ($request->has('status')) {
+                $query->where('status', $request->input('status'));
+            } else {
+                $query->whereIn('status', ['showing', 'coming_soon']);
+            }
 
-        $movies = $query->orderBy('created_at', 'desc')->paginate(12);
+            if ($request->filled('search')) {
+                $query->where('title', 'like', '%' . $request->input('search') . '%');
+            }
+
+            if ($request->filled('genre')) {
+                $query->where('genre', 'like', '%' . $request->input('genre') . '%');
+            }
+
+            return $query->orderBy('created_at', 'desc')->paginate(12)->toArray();
+        });
 
         return response()->json($movies);
     }
@@ -38,12 +47,22 @@ class MovieController extends Controller
      */
     public function publicShow(int $id)
     {
-        $movie = Movie::with('shows.room')->findOrFail($id);
+        $movieData = \Illuminate\Support\Facades\Cache::remember("movie_detail_{$id}", now()->addMinutes(10), function () use ($id) {
+            $movie = Movie::withCount('reviews')
+                ->withAvg('reviews', 'rating')
+                ->findOrFail($id);
 
-        $reviewStats = [
-            'total_reviews' => $movie->reviews()->count(),
-            'average_rating' => round($movie->reviews()->avg('rating'), 1) ?: 0,
-        ];
+            return [
+                'data' => $movie->toArray(),
+                'review_stats' => [
+                    'total_reviews' => $movie->reviews_count,
+                    'average_rating' => round($movie->reviews_avg_rating, 1) ?: 0,
+                ]
+            ];
+        });
+
+        $movie = $movieData['data'];
+        $reviewStats = $movieData['review_stats'];
 
         // Kiểm tra user đã xem phim chưa
         $hasWatched = false;

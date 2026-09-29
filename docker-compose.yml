@@ -10,9 +10,10 @@ services:
       - "8000:80"
     volumes:
       - .:/var/www/html
+      - vendor_data:/var/www/html/vendor
     environment:
       - DB_CONNECTION=mysql
-      - DB_HOST=db
+      - DB_HOST=cinema_db
       - DB_PORT=3306
       - DB_DATABASE=cinema_ticket_management
       - DB_USERNAME=root
@@ -26,6 +27,7 @@ services:
     image: mysql:8.0
     container_name: cinema_db
     restart: unless-stopped
+    command: --skip-name-resolve
     environment:
       MYSQL_DATABASE: cinema_ticket_management
       MYSQL_ROOT_PASSWORD: secret
@@ -37,9 +39,32 @@ services:
     networks:
       - cinema-network
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinema_scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www/html
+      - vendor_data:/var/www/html/vendor
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=cinema_db
+      - DB_PORT=3306
+      - DB_DATABASE=cinema_ticket_management
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    networks:
+      - cinema-network
+
 networks:
   cinema-network:
     driver: bridge
 
 volumes:
   cinema_db_data:
+  vendor_data:

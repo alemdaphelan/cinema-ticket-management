@@ -33,6 +33,8 @@ Route::prefix('auth')->group(function () {
 Route::get('/test-db', function () {
     $times = [];
     
+    $times['bootstrap'] = defined('LARAVEL_START') ? microtime(true) - LARAVEL_START : 0;
+
     $start = microtime(true);
     \Illuminate\Support\Facades\DB::connection()->getPdo();
     $times['connect'] = microtime(true) - $start;
@@ -48,6 +50,8 @@ Route::get('/test-db', function () {
     $start = microtime(true);
     $json = json_encode($movies);
     $times['json'] = microtime(true) - $start;
+
+    $times['total_php'] = defined('LARAVEL_START') ? microtime(true) - LARAVEL_START : 0;
 
     return response()->json(['times' => $times, 'count' => $count]);
 });

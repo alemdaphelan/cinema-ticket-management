@@ -20,13 +20,26 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $user = Auth::user();
-        $user->update([
+        $data = [
             'name' => $request->name,
             'email' => $request->email,
-        ]);
+        ];
+
+        if ($request->hasFile('avatar')) {
+            // Xóa avatar cũ nếu có
+            if ($user->avatar && str_starts_with($user->avatar, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $user->avatar);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = '/storage/' . $path;
+        }
+
+        $user->update($data);
 
         return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
     }

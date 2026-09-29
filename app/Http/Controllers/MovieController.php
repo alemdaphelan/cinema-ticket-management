@@ -12,12 +12,6 @@ class MovieController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        if (Movie::count() < 10) {
-            try {
-                \Illuminate\Support\Facades\Artisan::call('movies:fetch-tmdb');
-            } catch (\Exception $e) {}
-        }
-        
         $query = Movie::query();
 
         if ($request->has('status')) {
@@ -46,7 +40,34 @@ class MovieController extends Controller
     {
         $movie = Movie::with('shows.room')->findOrFail($id);
 
-        return response()->json(['data' => $movie]);
+        $reviewStats = [
+            'total_reviews' => $movie->reviews()->count(),
+            'average_rating' => round($movie->reviews()->avg('rating'), 1) ?: 0,
+        ];
+
+        // Kiểm tra user đã xem phim chưa
+        $hasWatched = false;
+        $hasReviewed = false;
+        if (auth('sanctum')->check()) {
+            $userId = auth('sanctum')->id();
+            $hasWatched = \App\Models\Order::where('user_id', $userId)
+                ->whereIn('status', ['paid', 'completed'])
+                ->whereHas('show', function ($query) use ($id) {
+                    $query->where('movie_id', $id)
+                          ->where('start_time', '<', now());
+                })
+                ->exists();
+            $hasReviewed = \App\Models\Review::where('user_id', $userId)
+                ->where('movie_id', $id)
+                ->exists();
+        }
+
+        return response()->json([
+            'data' => $movie,
+            'review_stats' => $reviewStats,
+            'has_watched' => $hasWatched,
+            'has_reviewed' => $hasReviewed,
+        ]);
     }
 
     /**
@@ -127,11 +148,13 @@ class MovieController extends Controller
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'poster_url' => 'nullable|string',
             'teaser_url' => 'nullable|string',
+            'teaser_file' => 'nullable|file|mimes:mp4|max:102400',
             'duration_minutes' => 'required|integer|min:1',
             'status' => 'required|in:coming_soon,showing,stopped',
             'tmdb_id' => 'nullable|string',
             'description' => 'nullable|string',
             'genre' => 'nullable|string',
+            'age_rating' => 'nullable|string|max:10',
             'release_date' => 'nullable|date',
         ]);
 
@@ -139,6 +162,13 @@ class MovieController extends Controller
             $path = $request->file('poster')->store('movies', 'public');
             $validated['poster_url'] = '/storage/' . $path;
         }
+
+        if ($request->hasFile('teaser_file')) {
+            $path = $request->file('teaser_file')->store('teasers', 'public');
+            $validated['teaser_url'] = '/storage/' . $path;
+        }
+
+        unset($validated['teaser_file']);
 
         $movie = Movie::create($validated);
 
@@ -158,16 +188,17 @@ class MovieController extends Controller
             'poster' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'poster_url' => 'nullable|string',
             'teaser_url' => 'nullable|string',
+            'teaser_file' => 'nullable|file|mimes:mp4|max:102400',
             'duration_minutes' => 'sometimes|integer|min:1',
             'status' => 'sometimes|in:coming_soon,showing,stopped',
             'tmdb_id' => 'nullable|string',
             'description' => 'nullable|string',
             'genre' => 'nullable|string',
+            'age_rating' => 'nullable|string|max:10',
             'release_date' => 'nullable|date',
         ]);
 
         if ($request->hasFile('poster')) {
-            // Delete old poster if exists and is a local file
             if ($movie->poster_url && str_starts_with($movie->poster_url, '/storage/')) {
                 $oldPath = str_replace('/storage/', '', $movie->poster_url);
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
@@ -175,6 +206,17 @@ class MovieController extends Controller
             $path = $request->file('poster')->store('movies', 'public');
             $validated['poster_url'] = '/storage/' . $path;
         }
+
+        if ($request->hasFile('teaser_file')) {
+            if ($movie->teaser_url && str_starts_with($movie->teaser_url, '/storage/')) {
+                $oldPath = str_replace('/storage/', '', $movie->teaser_url);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('teaser_file')->store('teasers', 'public');
+            $validated['teaser_url'] = '/storage/' . $path;
+        }
+
+        unset($validated['teaser_file']);
 
         $movie->update($validated);
 

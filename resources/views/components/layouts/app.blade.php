@@ -86,8 +86,12 @@
 
                         {{-- User Avatar Dropdown --}}
                         <div class="relative">
-                            <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--color-cinema-primary)] text-white font-bold cursor-pointer hover:ring-2 hover:ring-[var(--color-cinema-primary-hover)] transition-all focus:outline-none">
-                                {{ substr(str_replace('Khách hàng ', '', Auth::user()->name), 0, 1) }}
+                            <button onclick="document.getElementById('user-dropdown').classList.toggle('hidden')" class="flex items-center justify-center w-9 h-9 rounded-full cursor-pointer hover:ring-2 hover:ring-[var(--color-cinema-primary-hover)] transition-all focus:outline-none overflow-hidden {{ Auth::user()->avatar ? '' : 'bg-[var(--color-cinema-primary)] text-white font-bold' }}">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ Auth::user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
+                                @else
+                                    {{ substr(str_replace('Khách hàng ', '', Auth::user()->name), 0, 1) }}
+                                @endif
                             </button>
                             
                             {{-- Dropdown Menu --}}

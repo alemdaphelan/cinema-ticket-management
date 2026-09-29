@@ -44,22 +44,41 @@
 
     <script>
         const movieId = {{ $movieId }};
+        let movieReviewStats = {};
+        let movieHasWatched = false;
+        let movieHasReviewed = false;
 
         document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/movies/${movieId}`)
                 .then(res => res.json())
                 .then(result => {
                     const movie = result.data;
+                    movieReviewStats = result.review_stats || { total_reviews: 0, average_rating: 0 };
+                    movieHasWatched = result.has_watched || false;
+                    movieHasReviewed = result.has_reviewed || false;
                     renderMovieDetail(movie);
                     loadShows(movieId);
+                    loadReviews(movieId);
                 })
                 .catch(err => {
                     document.getElementById('movie-detail').innerHTML = '<p class="text-center text-red-400 py-20">Không tìm thấy phim.</p>';
                 });
         });
 
+        function renderTeaserPlayer(teaserUrl) {
+            if (!teaserUrl) return '';
+            const isMp4 = teaserUrl.endsWith('.mp4') || teaserUrl.includes('/storage/teasers/');
+            if (isMp4) {
+                return `<video src="${teaserUrl}" class="w-full h-full" controls preload="metadata"></video>`;
+            }
+            return `<iframe src="${teaserUrl}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+        }
+
         function renderMovieDetail(movie) {
             const container = document.getElementById('movie-detail');
+            const avgRating = movieReviewStats.average_rating || 0;
+            const totalReviews = movieReviewStats.total_reviews || 0;
+
             container.innerHTML = `
                 <div class="animate-fade-in-up">
                     {{-- Back button --}}
@@ -90,9 +109,18 @@
                                             ${movie.genre ? `<span>${movie.genre}</span>` : ''}
                                         </div>
                                     </div>
-                                    <span class="text-xs px-3 py-1.5 rounded-full font-semibold ${movie.status === 'showing' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">
-                                        ${movie.status === 'showing' ? 'Đang chiếu' : 'Sắp chiếu'}
-                                    </span>
+                                    <div class="flex items-center gap-3">
+                                        ${totalReviews > 0 ? `
+                                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background: var(--color-cinema-primary); background: linear-gradient(135deg, rgba(255,183,77,0.2), rgba(255,152,0,0.2)); border: 1px solid rgba(255,183,77,0.3);">
+                                                <span class="text-lg font-bold" style="color: var(--color-cinema-accent);">${avgRating}</span>
+                                                <span class="text-xs text-[var(--color-cinema-text-muted)]">/ 10</span>
+                                                <span class="text-xs text-[var(--color-cinema-text-muted)] ml-1">${totalReviews} đánh giá</span>
+                                            </div>
+                                        ` : ''}
+                                        <span class="text-xs px-3 py-1.5 rounded-full font-semibold ${movie.status === 'showing' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}">
+                                            ${movie.status === 'showing' ? 'Đang chiếu' : 'Sắp chiếu'}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 ${movie.description ? `
@@ -106,7 +134,7 @@
                                     <div class="mt-6">
                                         <h3 class="text-sm font-semibold text-[var(--color-cinema-accent)] mb-3">Teaser / Trailer</h3>
                                         <div class="aspect-video rounded-xl overflow-hidden" style="background: var(--color-cinema-card);">
-                                            <iframe src="${movie.teaser_url}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                                            ${renderTeaserPlayer(movie.teaser_url)}
                                         </div>
                                     </div>
                                 ` : ''}
@@ -128,6 +156,212 @@
                             <p class="text-[var(--color-cinema-text-muted)]">Phim sắp chiếu — Lịch chiếu sẽ được cập nhật sớm!</p>
                         </div>
                     `}
+
+                    {{-- Reviews Section --}}
+                    <div class="mt-8" id="reviews-section">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-bold text-white">Đánh giá & Bình luận</h2>
+                            <div class="flex items-center gap-3">
+                                ${totalReviews > 0 ? `
+                                    <span class="text-sm text-[var(--color-cinema-text-muted)]">${totalReviews} đánh giá</span>
+                                    <span class="text-lg font-bold" style="color: var(--color-cinema-accent);">${avgRating} / 10</span>
+                                ` : `
+                                    <span class="text-sm text-[var(--color-cinema-text-muted)]">Chưa có đánh giá</span>
+                                `}
+                            </div>
+                        </div>
+
+                        {{-- Review Form --}}
+                        ${window.IS_AUTHENTICATED ? (
+                            movieHasReviewed ? `
+                                <div class="glass rounded-xl p-4 mb-6 text-center">
+                                    <p class="text-sm text-[var(--color-cinema-text-muted)]">Bạn đã đánh giá phim này</p>
+                                </div>
+                            ` : (movieHasWatched ? `
+                                <div class="glass rounded-xl p-6 mb-6">
+                                    <h3 class="text-sm font-semibold text-white mb-4">Viết đánh giá của bạn</h3>
+                                    <form onsubmit="submitReview(event)" class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm text-[var(--color-cinema-text-muted)] mb-2">Điểm đánh giá</label>
+                                            <div class="flex gap-1" id="rating-selector">
+                                                ${Array.from({length: 10}, (_, i) => `
+                                                    <button type="button" onclick="selectRating(${i + 1})"
+                                                            class="rating-btn w-9 h-9 rounded-lg text-sm font-bold transition-all"
+                                                            style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border); color: var(--color-cinema-text-muted);"
+                                                            data-value="${i + 1}">
+                                                        ${i + 1}
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                            <input type="hidden" id="review-rating" value="">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm text-[var(--color-cinema-text-muted)] mb-2">Bình luận</label>
+                                            <textarea id="review-comment" rows="3" maxlength="1000"
+                                                      class="w-full px-4 py-3 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-cinema-primary)]"
+                                                      style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);"
+                                                      placeholder="Chia sẻ cảm nhận của bạn về phim..."></textarea>
+                                        </div>
+                                        <div class="flex justify-end">
+                                            <button type="submit" id="submit-review-btn" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-semibold">Gửi đánh giá</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            ` : `
+                                <div class="glass rounded-xl p-4 mb-6 text-center">
+                                    <p class="text-sm text-[var(--color-cinema-text-muted)]">Bạn cần đặt vé và xem phim này trước khi đánh giá</p>
+                                </div>
+                            `)
+                        ) : `
+                            <div class="glass rounded-xl p-4 mb-6 text-center">
+                                <p class="text-sm text-[var(--color-cinema-text-muted)]">Vui lòng <a href="/login" class="font-semibold" style="color: var(--color-cinema-accent);">đăng nhập</a> để đánh giá phim</p>
+                            </div>
+                        `}
+
+                        {{-- Reviews List --}}
+                        <div id="reviews-list">
+                            <div class="text-center py-8">
+                                <div class="inline-block w-6 h-6 border-2 border-[var(--color-cinema-primary)] border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        </div>
+                        <div id="reviews-load-more" class="hidden text-center mt-4">
+                            <button onclick="loadMoreReviews()" class="text-sm px-6 py-2 rounded-lg transition-all hover:opacity-80"
+                                    style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border); color: var(--color-cinema-text-muted);">
+                                Xem thêm đánh giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // === Rating Selector ===
+        let selectedRating = 0;
+        function selectRating(value) {
+            selectedRating = value;
+            document.getElementById('review-rating').value = value;
+            document.querySelectorAll('.rating-btn').forEach(btn => {
+                const v = parseInt(btn.dataset.value);
+                if (v <= value) {
+                    btn.style.background = 'var(--color-cinema-accent)';
+                    btn.style.color = '#000';
+                    btn.style.borderColor = 'var(--color-cinema-accent)';
+                } else {
+                    btn.style.background = 'var(--color-cinema-card)';
+                    btn.style.color = 'var(--color-cinema-text-muted)';
+                    btn.style.borderColor = 'var(--color-cinema-border)';
+                }
+            });
+        }
+
+        // === Submit Review ===
+        function submitReview(e) {
+            e.preventDefault();
+            const rating = document.getElementById('review-rating').value;
+            const comment = document.getElementById('review-comment').value;
+
+            if (!rating) {
+                alert('Vui lòng chọn điểm đánh giá');
+                return;
+            }
+
+            const btn = document.getElementById('submit-review-btn');
+            btn.disabled = true;
+            btn.textContent = 'Đang gửi...';
+
+            fetch(`/api/movies/${movieId}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': window.CSRF_TOKEN,
+                },
+                body: JSON.stringify({ rating: parseInt(rating), comment: comment || null }),
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (ok) {
+                    movieHasReviewed = true;
+                    // Reload page to reflect changes
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra');
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi đánh giá';
+                }
+            })
+            .catch(() => {
+                alert('Có lỗi xảy ra, vui lòng thử lại');
+                btn.disabled = false;
+                btn.textContent = 'Gửi đánh giá';
+            });
+        }
+
+        // === Load Reviews ===
+        let reviewsPage = 1;
+        let reviewsLastPage = 1;
+
+        function loadReviews(id, page = 1) {
+            fetch(`/api/movies/${id}/reviews?page=${page}`)
+                .then(res => res.json())
+                .then(result => {
+                    const reviews = result.data || [];
+                    reviewsLastPage = result.last_page || 1;
+                    reviewsPage = result.current_page || 1;
+
+                    const container = document.getElementById('reviews-list');
+                    if (reviews.length === 0 && page === 1) {
+                        container.innerHTML = '<p class="text-center text-[var(--color-cinema-text-muted)] py-8">Chưa có đánh giá nào cho phim này</p>';
+                        return;
+                    }
+
+                    const html = reviews.map(review => renderReviewItem(review)).join('');
+
+                    if (page === 1) {
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML += html;
+                    }
+
+                    // Show/hide load more button
+                    const loadMoreBtn = document.getElementById('reviews-load-more');
+                    if (reviewsPage < reviewsLastPage) {
+                        loadMoreBtn.classList.remove('hidden');
+                    } else {
+                        loadMoreBtn.classList.add('hidden');
+                    }
+                });
+        }
+
+        function loadMoreReviews() {
+            loadReviews(movieId, reviewsPage + 1);
+        }
+
+        function renderReviewItem(review) {
+            const date = new Date(review.created_at);
+            const dateStr = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const user = review.user || {};
+            const initial = (user.name || '?').charAt(0).toUpperCase();
+            const avatarHtml = user.avatar
+                ? `<img src="${user.avatar}" alt="${user.name}" class="w-10 h-10 rounded-full object-cover">`
+                : `<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">${initial}</div>`;
+
+            return `
+                <div class="glass rounded-xl p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0">${avatarHtml}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm font-semibold text-white">${user.name || 'Ẩn danh'}</span>
+                                <span class="text-xs text-[var(--color-cinema-text-muted)]">${dateStr}</span>
+                            </div>
+                            <div class="flex items-center gap-1 mb-2">
+                                <span class="text-sm font-bold" style="color: var(--color-cinema-accent);">${review.rating}</span>
+                                <span class="text-xs text-[var(--color-cinema-text-muted)]">/ 10</span>
+                            </div>
+                            ${review.comment ? `<p class="text-sm text-[var(--color-cinema-text-muted)] leading-relaxed">${review.comment}</p>` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
         }

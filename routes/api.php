@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ShowController;
 use App\Http\Controllers\SnackController;
 use App\Http\Controllers\StaffController;
@@ -29,8 +30,30 @@ Route::prefix('auth')->group(function () {
 });
 
 // === Public (không cần login) ===
+Route::get('/test-db', function () {
+    $times = [];
+    
+    $start = microtime(true);
+    \Illuminate\Support\Facades\DB::connection()->getPdo();
+    $times['connect'] = microtime(true) - $start;
+
+    $start = microtime(true);
+    $count = \App\Models\Movie::count();
+    $times['count'] = microtime(true) - $start;
+    
+    $start = microtime(true);
+    $movies = \App\Models\Movie::query()->whereIn('status', ['showing', 'coming_soon'])->orderBy('created_at', 'desc')->paginate(12);
+    $times['paginate'] = microtime(true) - $start;
+    
+    $start = microtime(true);
+    $json = json_encode($movies);
+    $times['json'] = microtime(true) - $start;
+
+    return response()->json(['times' => $times, 'count' => $count]);
+});
 Route::get('/movies', [MovieController::class, 'publicIndex']);
 Route::get('/movies/{id}', [MovieController::class, 'publicShow']);
+Route::get('/movies/{id}/reviews', [ReviewController::class, 'index']);
 Route::get('/shows', [ShowController::class, 'publicIndex']);
 Route::get('/shows/{id}/seats', [ShowController::class, 'getSeats']);
 Route::get('/snacks', [SnackController::class, 'publicIndex']);
@@ -47,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/history', [BookingController::class, 'orderHistory']);
         Route::get('/{id}', [BookingController::class, 'orderDetail']);
     });
+
+    // Reviews
+    Route::post('/movies/{id}/reviews', [ReviewController::class, 'store']);
 
     // Staff
     Route::middleware([RoleMiddleware::class . ':staff,admin'])->prefix('staff')->group(function () {

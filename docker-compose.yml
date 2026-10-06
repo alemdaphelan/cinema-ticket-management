@@ -45,7 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: cinema_scheduler
     restart: unless-stopped
-    command: php artisan schedule:work
+    command: sh -c "php artisan app:update-demo-shows && php artisan schedule:work"
     volumes:
       - .:/var/www/html
       - vendor_data:/var/www/html/vendor

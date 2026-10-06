@@ -27,6 +27,44 @@
         </div>
     </section>
 
+    {{-- Genres Section --}}
+    <section id="genres" class="w-[95%] max-w-[1600px] mx-auto px-4 py-16 border-b border-[var(--color-cinema-border)]">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-bold text-white">Khám phá thể loại</h2>
+                <p class="text-[var(--color-cinema-text-muted)] text-sm mt-1">Tìm bộ phim hoàn hảo theo sở thích của bạn</p>
+            </div>
+            <button onclick="filterByGenre('')" class="text-sm font-medium text-[var(--color-cinema-primary)] hover:text-[var(--color-cinema-primary-hover)] transition-colors">
+                Tất cả phim →
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+            @php
+                $genres = [
+                    ['name' => 'Hành Động', 'image' => 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Hài', 'image' => 'https://images.unsplash.com/photo-1543536448-d209d2d13a1c?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Kinh Dị', 'image' => 'https://images.unsplash.com/photo-1505635552518-3448ff116af3?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Hoạt Hình', 'image' => 'https://images.unsplash.com/photo-1524253482453-3fed8d2fe12b?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Tình Cảm', 'image' => 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Viễn Tưởng', 'image' => 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Phiêu Lưu', 'image' => 'https://images.unsplash.com/photo-1536697246787-1f276329e4fa?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Tâm Lý', 'image' => 'https://images.unsplash.com/photo-1518066000714-58c45f1a2c0a?q=80&w=800&auto=format&fit=crop'],
+                ];
+            @endphp
+
+            @foreach($genres as $genre)
+                <div onclick="filterByGenre('{{ $genre['name'] }}')" class="relative h-32 md:h-40 rounded-2xl overflow-hidden cursor-pointer group shadow-lg border border-[var(--color-cinema-border)] hover:border-[var(--color-cinema-primary)] transition-all duration-300 transform hover:-translate-y-1">
+                    <img src="{{ $genre['image'] }}" alt="{{ $genre['name'] }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-in-out">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                    <div class="absolute inset-0 p-4 flex flex-col justify-end items-center text-center">
+                        <h3 class="text-white font-bold text-lg md:text-xl tracking-wide group-hover:text-[var(--color-cinema-primary)] transition-colors">{{ $genre['name'] }}</h3>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
     {{-- Now Showing --}}
     <section id="now-showing" class="w-[95%] max-w-[1600px] mx-auto px-4 py-16">
         <div class="flex items-center justify-between mb-8">
@@ -47,6 +85,14 @@
             <a href="/" class="text-sm text-[var(--color-cinema-text-muted)] hover:text-white">Xóa tìm kiếm ✕</a>
         </div>
         @endif
+
+        <div id="active-genre-indicator" class="mb-6 hidden items-center justify-between bg-[var(--color-cinema-card)] p-4 rounded-xl border border-[var(--color-cinema-border)] transition-all duration-300">
+            <p class="text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-[var(--color-cinema-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Đang lọc theo thể loại: <span id="active-genre-text" class="font-bold text-[var(--color-cinema-primary)]"></span>
+            </p>
+            <button onclick="filterByGenre('')" class="text-sm font-medium text-red-400 hover:text-red-300 transition-colors bg-red-400/10 px-3 py-1.5 rounded-lg">Xóa bộ lọc ✕</button>
+        </div>
 
         <div id="movies-showing" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
             {{-- Loaded via JavaScript --}}
@@ -147,6 +193,19 @@
 
         function filterByGenre(genre) {
             currentGenre = genre;
+            
+            const indicator = document.getElementById('active-genre-indicator');
+            const genreText = document.getElementById('active-genre-text');
+            
+            if (genre) {
+                indicator.classList.remove('hidden');
+                indicator.classList.add('flex');
+                genreText.textContent = `"${genre}"`;
+            } else {
+                indicator.classList.add('hidden');
+                indicator.classList.remove('flex');
+            }
+
             document.getElementById('now-showing').scrollIntoView({ behavior: 'smooth' });
             loadMovies('showing', 'movies-showing', 1);
         }

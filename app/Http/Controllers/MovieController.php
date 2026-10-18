@@ -15,15 +15,19 @@ class MovieController extends Controller
         $status = $request->input('status', 'showing_coming_soon');
         $search = $request->input('search', '');
         $genre = $request->input('genre', '');
+        $sort = $request->input('sort', 'latest');
         $page = $request->input('page', 1);
 
-        $cacheKey = "movies_index_{$status}_{$search}_{$genre}_{$page}";
+        $cacheKey = "movies_index_{$status}_{$search}_{$genre}_{$sort}_{$page}";
 
-        $movies = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
-            $query = Movie::query();
+        $movies = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request, $sort) {
+            $query = Movie::withCount('reviews')
+                ->withAvg('reviews', 'rating');
 
-            if ($request->has('status')) {
-                $query->where('status', $request->input('status'));
+            if ($request->filled('status')) {
+                if ($request->input('status') !== 'all') {
+                    $query->where('status', $request->input('status'));
+                }
             } else {
                 $query->whereIn('status', ['showing', 'coming_soon']);
             }
@@ -36,7 +40,23 @@ class MovieController extends Controller
                 $query->where('genre', 'like', '%' . $request->input('genre') . '%');
             }
 
-            return $query->orderBy('created_at', 'desc')->paginate(12)->toArray();
+            switch ($sort) {
+                case 'rating':
+                    $query->orderByDesc('reviews_avg_rating')->orderByDesc('created_at');
+                    break;
+                case 'duration':
+                    $query->orderByDesc('duration_minutes');
+                    break;
+                case 'title':
+                    $query->orderBy('title', 'asc');
+                    break;
+                case 'latest':
+                default:
+                    $query->orderByDesc('created_at');
+                    break;
+            }
+
+            return $query->paginate(12)->toArray();
         });
 
         return response()->json($movies);
@@ -64,11 +84,13 @@ class MovieController extends Controller
         $movie = $movieData['data'];
         $reviewStats = $movieData['review_stats'];
 
-        // Kiểm tra user đã xem phim chưa
+        // Kiểm tra user đã xem phim chưa (hỗ trợ cả Sanctum Token và Web Session)
         $hasWatched = false;
         $hasReviewed = false;
-        if (auth('sanctum')->check()) {
-            $userId = auth('sanctum')->id();
+        $user = auth('sanctum')->user() ?? auth('web')->user() ?? auth()->user();
+
+        if ($user) {
+            $userId = $user->id;
             $hasWatched = \App\Models\Order::where('user_id', $userId)
                 ->whereIn('status', ['paid', 'completed'])
                 ->whereHas('show', function ($query) use ($id) {

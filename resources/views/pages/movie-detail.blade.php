@@ -157,77 +157,209 @@
                         </div>
                     `}
 
-                    {{-- Reviews Section --}}
-                    <div class="mt-8" id="reviews-section">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-xl font-bold text-white">Đánh giá & Bình luận</h2>
-                            <div class="flex items-center gap-3">
-                                ${totalReviews > 0 ? `
-                                    <span class="text-sm text-[var(--color-cinema-text-muted)]">${totalReviews} đánh giá</span>
-                                    <span class="text-lg font-bold" style="color: var(--color-cinema-accent);">${avgRating} / 10</span>
-                                ` : `
-                                    <span class="text-sm text-[var(--color-cinema-text-muted)]">Chưa có đánh giá</span>
-                                `}
+                    {{-- Reviews Section (MoMo Style) --}}
+                    <div class="mt-12" id="reviews-section">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                            <div>
+                                <div class="flex items-center gap-2.5">
+                                    <h2 class="text-xl md:text-2xl font-bold text-white">Đánh giá từ khán giả</h2>
+                                    <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-pink-500/15 text-pink-400 border border-pink-500/30 flex items-center shadow-sm">
+                                        MoMo Verified
+                                    </span>
+                                </div>
+                                <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] mt-1">
+                                    Đánh giá minh bạch & khách quan từ cộng đồng khán giả đã thưởng thức phim tại rạp
+                                </p>
                             </div>
                         </div>
 
-                        {{-- Review Form --}}
+                        {{-- MoMo Overview Card --}}
+                        <div id="momo-summary-card" class="glass rounded-3xl p-6 md:p-8 mb-8 border border-[var(--color-cinema-border)] shadow-xl relative overflow-hidden">
+                            <div class="text-center py-6 text-[var(--color-cinema-text-muted)]">
+                                <div class="inline-block w-6 h-6 border-2 border-[var(--color-cinema-primary)] border-t-transparent rounded-full animate-spin"></div>
+                                <p class="text-xs mt-2">Đang tổng hợp đánh giá...</p>
+                            </div>
+                        </div>
+
+                        {{-- Review Eligibility & Form --}}
                         ${window.IS_AUTHENTICATED ? (
                             movieHasReviewed ? `
-                                <div class="glass rounded-xl p-4 mb-6 text-center">
-                                    <p class="text-sm text-[var(--color-cinema-text-muted)]">Bạn đã đánh giá phim này</p>
+                                <div class="glass rounded-2xl p-6 mb-8 border border-emerald-500/30 bg-emerald-500/5 text-center">
+                                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-3 border border-emerald-500/30">
+                                        ✓
+                                    </div>
+                                    <h3 class="text-base font-bold text-white mb-1">Bạn đã đánh giá bộ phim này!</h3>
+                                    <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] max-w-md mx-auto">
+                                        Cảm ơn bạn đã chia sẻ nhận xét thực tế. Đánh giá của bạn giúp cộng đồng yêu phim có góc nhìn chân thực và đa chiều nhất.
+                                    </p>
                                 </div>
                             ` : (movieHasWatched ? `
-                                <div class="glass rounded-xl p-6 mb-6">
-                                    <h3 class="text-sm font-semibold text-white mb-4">Viết đánh giá của bạn</h3>
-                                    <form onsubmit="submitReview(event)" class="space-y-4">
+                                <div class="glass rounded-3xl p-6 md:p-8 mb-8 border border-[var(--color-cinema-primary)]/40 shadow-2xl relative overflow-hidden" 
+                                     style="background: linear-gradient(135deg, rgba(30, 20, 35, 0.95), rgba(20, 20, 28, 0.95));">
+                                    <div class="flex items-center justify-between flex-wrap gap-3 mb-6 pb-4 border-b border-[var(--color-cinema-border)]/50">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow" 
+                                                 style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">
+                                                ${(window.AUTH_USER?.name || 'U').charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                                    Viết đánh giá của bạn
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                                        Đã xem tại rạp
+                                                    </span>
+                                                </h3>
+                                                <p class="text-xs text-[var(--color-cinema-text-muted)]">Bạn vừa thưởng thức phim xong, cảm nhận của bạn thế nào?</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <form onsubmit="submitReview(event)" class="space-y-5">
+                                        {{-- Rating Selection --}}
                                         <div>
-                                            <label class="block text-sm text-[var(--color-cinema-text-muted)] mb-2">Điểm đánh giá</label>
-                                            <div class="flex gap-1" id="rating-selector">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <label class="block text-xs md:text-sm font-semibold text-white">
+                                                    Chấm điểm bộ phim: <span id="rating-sentiment" class="font-bold text-[var(--color-cinema-accent)]">Chọn số điểm từ 1 đến 10</span>
+                                                </label>
+                                            </div>
+                                            <div class="grid grid-cols-5 sm:grid-cols-10 gap-2" id="rating-selector">
                                                 ${Array.from({length: 10}, (_, i) => `
                                                     <button type="button" onclick="selectRating(${i + 1})"
-                                                            class="rating-btn w-9 h-9 rounded-lg text-sm font-bold transition-all"
-                                                            style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border); color: var(--color-cinema-text-muted);"
+                                                            class="rating-btn py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5 border"
+                                                            style="background: var(--color-cinema-card); border-color: var(--color-cinema-border); color: var(--color-cinema-text-muted);"
                                                             data-value="${i + 1}">
-                                                        ${i + 1}
+                                                        <span>${i + 1}</span>
+                                                        <span class="text-[10px] opacity-70">★</span>
                                                     </button>
                                                 `).join('')}
                                             </div>
                                             <input type="hidden" id="review-rating" value="">
                                         </div>
+
+                                        {{-- Fast Tag Suggestions (MoMo style) --}}
                                         <div>
-                                            <label class="block text-sm text-[var(--color-cinema-text-muted)] mb-2">Bình luận</label>
-                                            <textarea id="review-comment" rows="3" maxlength="1000"
-                                                      class="w-full px-4 py-3 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-cinema-primary)]"
-                                                      style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);"
-                                                      placeholder="Chia sẻ cảm nhận của bạn về phim..."></textarea>
+                                            <span class="text-xs text-[var(--color-cinema-text-muted)] block mb-2">Gợi ý cảm xúc nhanh (nhấn để thêm vào bình luận):</span>
+                                            <div class="flex flex-wrap gap-2">
+                                                <button type="button" onclick="insertTag('#DiễnXuấtĐỉnh')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Diễn xuất đỉnh
+                                                </button>
+                                                <button type="button" onclick="insertTag('#KịchBảnLôiCuốn')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Kịch bản lôi cuốn
+                                                </button>
+                                                <button type="button" onclick="insertTag('#KỹXảoMãnNhãn')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Kỹ xảo mãn nhãn
+                                                </button>
+                                                <button type="button" onclick="insertTag('#ÂmThanhSốngĐộng')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Âm thanh sống động
+                                                </button>
+                                                <button type="button" onclick="insertTag('#RấtĐángTiềnVé')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Rất đáng tiền vé
+                                                </button>
+                                                <button type="button" onclick="insertTag('#CáiKếtBấtNgờ')" class="px-3 py-1 rounded-full text-xs font-medium border border-[var(--color-cinema-border)] bg-[var(--color-cinema-card)] text-[var(--color-cinema-text-muted)] hover:text-white hover:border-[var(--color-cinema-primary)] transition-colors cursor-pointer">
+                                                    + Cái kết bất ngờ
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="flex justify-end">
-                                            <button type="submit" id="submit-review-btn" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-semibold">Gửi đánh giá</button>
+
+                                        {{-- Comment Textarea --}}
+                                        <div>
+                                            <div class="flex items-center justify-between mb-1.5">
+                                                <label class="block text-xs md:text-sm font-semibold text-white">Nhận xét chi tiết</label>
+                                                <span id="char-counter" class="text-[11px] text-[var(--color-cinema-text-muted)]">0 / 1000 ký tự</span>
+                                            </div>
+                                            <textarea id="review-comment" rows="3" maxlength="1000"
+                                                      oninput="updateCharCount(this)"
+                                                      class="w-full px-4 py-3 rounded-2xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-cinema-primary)] transition-all resize-none"
+                                                      style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);"
+                                                      placeholder="Chia sẻ chi tiết về kịch bản, diễn xuất, âm thanh, bối cảnh phim để cộng đồng cùng thảo luận nhé..."></textarea>
+                                        </div>
+
+                                        <div class="flex justify-end pt-1">
+                                            <button type="submit" id="submit-review-btn" class="btn-primary px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-[var(--color-cinema-primary)]/20 cursor-pointer">
+                                                Gửi đánh giá ngay
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
                             ` : `
-                                <div class="glass rounded-xl p-4 mb-6 text-center">
-                                    <p class="text-sm text-[var(--color-cinema-text-muted)]">Bạn cần đặt vé và xem phim này trước khi đánh giá</p>
+                                <div class="glass rounded-3xl p-6 md:p-8 mb-8 border border-amber-500/30 bg-amber-500/5 shadow-xl">
+                                    <div class="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+                                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                                                    <h3 class="text-base md:text-lg font-bold text-white">Quyền đánh giá dành cho khán giả đã xem phim</h3>
+                                                    <span class="text-[10px] px-2 py-0.5 rounded font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">MOMO VERIFIED</span>
+                                                </div>
+                                                <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] max-w-xl leading-relaxed">
+                                                    Để đảm bảo tính khách quan và uy tín, chỉ những khán giả đã đặt vé và xem phim xong tại cụm rạp CineStar mới có quyền tham gia chấm điểm và viết bình luận.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button onclick="scrollToShows()" class="btn-primary shrink-0 px-6 py-3 rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-lg shadow-[var(--color-cinema-primary)]/20 whitespace-nowrap">
+                                            Đặt vé xem phim ngay
+                                        </button>
+                                    </div>
                                 </div>
                             `)
                         ) : `
-                            <div class="glass rounded-xl p-4 mb-6 text-center">
-                                <p class="text-sm text-[var(--color-cinema-text-muted)]">Vui lòng <a href="/login" class="font-semibold" style="color: var(--color-cinema-accent);">đăng nhập</a> để đánh giá phim</p>
+                            <div class="glass rounded-3xl p-6 md:p-8 mb-8 border border-[var(--color-cinema-border)] text-center shadow-xl">
+                                <div class="w-12 h-12 mx-auto rounded-full bg-[var(--color-cinema-card)] flex items-center justify-center text-[var(--color-cinema-text-muted)] mb-3 border border-[var(--color-cinema-border)]">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-base font-bold text-white mb-1">Đăng nhập để đánh giá phim</h3>
+                                <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] max-w-md mx-auto mb-4">
+                                    Vui lòng đăng nhập để kiểm tra quyền đánh giá (Dành riêng cho khán giả đã mua vé và xem phim xong tại rạp).
+                                </p>
+                                <a href="/login" class="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold">
+                                    Đăng nhập tài khoản
+                                </a>
                             </div>
                         `}
 
+                        {{-- MoMo Review Filter Tabs --}}
+                        <div class="flex items-center gap-2 overflow-x-auto pb-2 mb-6" id="review-filter-tabs">
+                            <button type="button" onclick="filterReviews('all')" id="rf-tab-all"
+                                    class="review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer btn-primary shadow-md">
+                                Tất cả (<span id="rf-count-all">0</span>)
+                            </button>
+                            <button type="button" onclick="filterReviews('9-10')" id="rf-tab-9-10"
+                                    class="review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all cursor-pointer border"
+                                    style="background: var(--color-cinema-card); border-color: var(--color-cinema-border); color: var(--color-cinema-text-muted);">
+                                Khen nhiều (9 - 10 sao)
+                            </button>
+                            <button type="button" onclick="filterReviews('7-8')" id="rf-tab-7-8"
+                                    class="review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all cursor-pointer border"
+                                    style="background: var(--color-cinema-card); border-color: var(--color-cinema-border); color: var(--color-cinema-text-muted);">
+                                Khá & Hay (7 - 8 sao)
+                            </button>
+                            <button type="button" onclick="filterReviews('under_7')" id="rf-tab-under_7"
+                                    class="review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all cursor-pointer border"
+                                    style="background: var(--color-cinema-card); border-color: var(--color-cinema-border); color: var(--color-cinema-text-muted);">
+                                Ý kiến khác (≤ 6 sao)
+                            </button>
+                        </div>
+
                         {{-- Reviews List --}}
-                        <div id="reviews-list">
-                            <div class="text-center py-8">
-                                <div class="inline-block w-6 h-6 border-2 border-[var(--color-cinema-primary)] border-t-transparent rounded-full animate-spin"></div>
+                        <div id="reviews-list" class="space-y-4">
+                            <div class="text-center py-10">
+                                <div class="inline-block w-8 h-8 border-2 border-[var(--color-cinema-primary)] border-t-transparent rounded-full animate-spin"></div>
+                                <p class="text-xs text-[var(--color-cinema-text-muted)] mt-2">Đang tải danh sách nhận xét...</p>
                             </div>
                         </div>
-                        <div id="reviews-load-more" class="hidden text-center mt-4">
-                            <button onclick="loadMoreReviews()" class="text-sm px-6 py-2 rounded-lg transition-all hover:opacity-80"
-                                    style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border); color: var(--color-cinema-text-muted);">
-                                Xem thêm đánh giá
+
+                        {{-- Load More --}}
+                        <div id="reviews-load-more" class="hidden text-center mt-6">
+                            <button onclick="loadMoreReviews()" class="text-sm px-8 py-3 rounded-xl transition-all hover:border-[var(--color-cinema-primary)] font-semibold cursor-pointer glass"
+                                    style="color: var(--color-cinema-text);">
+                                Xem thêm nhận xét khác ↓
                             </button>
                         </div>
                     </div>
@@ -235,39 +367,79 @@
             `;
         }
 
-        // === Rating Selector ===
+        // === MoMo Rating Selector Logic ===
+        const RATING_SENTIMENTS = {
+            10: '10/10 - Cực phẩm! Tuyệt tác điện ảnh không thể bỏ lỡ',
+            9:  '9/10 - Phim rất hay! Đáng từng phút giây thưởng thức',
+            8:  '8/10 - Hay! Kịch bản cuốn hút, diễn xuất rất tốt',
+            7:  '7/10 - Khá ổn! Phim giải trí tốt cho ngày cuối tuần',
+            6:  '6/10 - Tạm được! Xem ổn nhưng chưa có nhiều đột phá',
+            5:  '5/10 - Bình thường, không có nhiều ấn tượng đọng lại',
+            4:  '4/10 - Dưới kỳ vọng, kịch bản còn nhiều điểm trừ',
+            3:  '3/10 - Khá chán, nhịp phim buồn ngủ và rời rạc',
+            2:  '2/10 - Tệ, không khuyến khích bạn bè đi xem',
+            1:  '1/10 - Rất tệ, trải nghiệm xem phim thất vọng'
+        };
+
         let selectedRating = 0;
         function selectRating(value) {
             selectedRating = value;
             document.getElementById('review-rating').value = value;
+            document.getElementById('rating-sentiment').textContent = RATING_SENTIMENTS[value] || `${value}/10 Điểm`;
+
             document.querySelectorAll('.rating-btn').forEach(btn => {
                 const v = parseInt(btn.dataset.value);
                 if (v <= value) {
-                    btn.style.background = 'var(--color-cinema-accent)';
-                    btn.style.color = '#000';
+                    btn.style.background = 'linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent))';
+                    btn.style.color = '#fff';
                     btn.style.borderColor = 'var(--color-cinema-accent)';
+                    btn.classList.add('scale-105', 'shadow-md');
                 } else {
                     btn.style.background = 'var(--color-cinema-card)';
                     btn.style.color = 'var(--color-cinema-text-muted)';
                     btn.style.borderColor = 'var(--color-cinema-border)';
+                    btn.classList.remove('scale-105', 'shadow-md');
                 }
             });
+        }
+
+        function insertTag(tag) {
+            const textarea = document.getElementById('review-comment');
+            if (!textarea) return;
+            if (textarea.value.includes(tag)) return;
+            textarea.value = textarea.value ? textarea.value.trim() + ' ' + tag : tag + ' ';
+            updateCharCount(textarea);
+            textarea.focus();
+        }
+
+        function updateCharCount(el) {
+            const counter = document.getElementById('char-counter');
+            if (counter) {
+                counter.textContent = `${el.value.length} / 1000 ký tự`;
+            }
+        }
+
+        function scrollToShows() {
+            const el = document.getElementById('shows-list') || document.getElementById('date-tabs');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
 
         // === Submit Review ===
         function submitReview(e) {
             e.preventDefault();
             const rating = document.getElementById('review-rating').value;
-            const comment = document.getElementById('review-comment').value;
+            const comment = document.getElementById('review-comment').value.trim();
 
             if (!rating) {
-                alert('Vui lòng chọn điểm đánh giá');
+                alert('Vui lòng chọn số điểm đánh giá (từ 1 đến 10)!');
                 return;
             }
 
             const btn = document.getElementById('submit-review-btn');
             btn.disabled = true;
-            btn.textContent = 'Đang gửi...';
+            btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span> Đang gửi đánh giá...`;
 
             fetch(`/api/movies/${movieId}/reviews`, {
                 method: 'POST',
@@ -278,92 +450,254 @@
                 },
                 body: JSON.stringify({ rating: parseInt(rating), comment: comment || null }),
             })
-            .then(res => res.json().then(data => ({ ok: res.ok, data })))
-            .then(({ ok, data }) => {
+            .then(res => res.json().then(data => ({ ok: res.ok, status: res.status, data })))
+            .then(({ ok, status, data }) => {
                 if (ok) {
                     movieHasReviewed = true;
-                    // Reload page to reflect changes
+                    alert('Chúc mừng bạn đã gửi đánh giá thành công! Nhận xét đã được ghi nhận vào hệ thống CineStar.');
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Có lỗi xảy ra');
+                    alert(data.message || 'Không thể gửi đánh giá. Vui lòng kiểm tra lại!');
                     btn.disabled = false;
-                    btn.textContent = 'Gửi đánh giá';
+                    btn.innerHTML = 'Gửi đánh giá ngay';
                 }
             })
             .catch(() => {
-                alert('Có lỗi xảy ra, vui lòng thử lại');
+                alert('Có lỗi kết nối máy chủ. Vui lòng thử lại sau!');
                 btn.disabled = false;
-                btn.textContent = 'Gửi đánh giá';
+                btn.innerHTML = 'Gửi đánh giá ngay';
             });
         }
 
-        // === Load Reviews ===
+        // === Load Reviews (MoMo Architecture) ===
+        let currentRatingFilter = 'all';
         let reviewsPage = 1;
         let reviewsLastPage = 1;
+        let helpfulCounts = {};
 
-        function loadReviews(id, page = 1) {
-            fetch(`/api/movies/${id}/reviews?page=${page}`)
+        function filterReviews(filterGroup) {
+            currentRatingFilter = filterGroup;
+            reviewsPage = 1;
+
+            // Update tab styles
+            document.querySelectorAll('.review-filter-btn').forEach(btn => {
+                btn.className = 'review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all cursor-pointer border';
+                btn.style = 'background: var(--color-cinema-card); border-color: var(--color-cinema-border); color: var(--color-cinema-text-muted);';
+            });
+            const activeTab = document.getElementById(`rf-tab-${filterGroup}`);
+            if (activeTab) {
+                activeTab.className = 'review-filter-btn px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer btn-primary shadow-md';
+                activeTab.removeAttribute('style');
+            }
+
+            loadReviews(movieId, 1, true);
+        }
+
+        function loadReviews(id, page = 1, isFilterChange = false) {
+            fetch(`/api/movies/${id}/reviews?rating_filter=${currentRatingFilter}&page=${page}`)
                 .then(res => res.json())
                 .then(result => {
                     const reviews = result.data || [];
+                    const summary = result.summary || {};
                     reviewsLastPage = result.last_page || 1;
                     reviewsPage = result.current_page || 1;
 
+                    // Update MoMo Overview Card
+                    renderMomoSummaryCard(summary);
+
+                    // Update Tab Count
+                    const allCountEl = document.getElementById('rf-count-all');
+                    if (allCountEl && summary.total_reviews !== undefined) {
+                        allCountEl.textContent = summary.total_reviews;
+                    }
+
                     const container = document.getElementById('reviews-list');
-                    if (reviews.length === 0 && page === 1) {
-                        container.innerHTML = '<p class="text-center text-[var(--color-cinema-text-muted)] py-8">Chưa có đánh giá nào cho phim này</p>';
+                    if (reviews.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-12 glass rounded-2xl border border-[var(--color-cinema-border)]">
+                                <p class="text-3xl mb-2">💬</p>
+                                <p class="text-sm font-semibold text-white">Chưa có nhận xét nào trong mục này</p>
+                                <p class="text-xs text-[var(--color-cinema-text-muted)] mt-1">Hãy là người đầu tiên chia sẻ cảm nhận về bộ phim!</p>
+                            </div>
+                        `;
+                        document.getElementById('reviews-load-more').classList.add('hidden');
                         return;
                     }
 
-                    const html = reviews.map(review => renderReviewItem(review)).join('');
-
+                    const html = reviews.map(r => renderMomoReviewItem(r)).join('');
                     if (page === 1) {
                         container.innerHTML = html;
                     } else {
                         container.innerHTML += html;
                     }
 
-                    // Show/hide load more button
+                    // Load more button
                     const loadMoreBtn = document.getElementById('reviews-load-more');
                     if (reviewsPage < reviewsLastPage) {
                         loadMoreBtn.classList.remove('hidden');
                     } else {
                         loadMoreBtn.classList.add('hidden');
                     }
+                })
+                .catch(err => {
+                    console.error('Lỗi tải đánh giá:', err);
                 });
+        }
+
+        function renderMomoSummaryCard(summary) {
+            const card = document.getElementById('momo-summary-card');
+            if (!card) return;
+
+            const avg = summary.average_rating ? summary.average_rating.toFixed(1) : '0.0';
+            const total = summary.total_reviews || 0;
+            const satisfaction = summary.satisfaction_rate || 100;
+            const bd = summary.breakdown || {};
+            const tags = summary.top_tags || [];
+
+            // Generate full/half stars
+            const starsCount = Math.round(avg / 2);
+            let starIcons = '';
+            for (let i = 1; i <= 5; i++) {
+                starIcons += `<span class="${i <= starsCount ? 'text-yellow-400' : 'text-gray-600'} text-lg">★</span>`;
+            }
+
+            card.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    {{-- Column 1: Big Score --}}
+                    <div class="md:col-span-4 flex flex-col items-center justify-center text-center p-4 border-b md:border-b-0 md:border-r border-[var(--color-cinema-border)]/60">
+                        <span class="text-5xl md:text-6xl font-extrabold text-white tracking-tight">${avg}</span>
+                        <div class="flex items-center gap-1 my-2">
+                            ${starIcons}
+                        </div>
+                        <span class="text-xs text-[var(--color-cinema-text-muted)] mb-3">${total} lượt đánh giá & nhận xét</span>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            ${satisfaction}% Khán giả hài lòng
+                        </div>
+                    </div>
+
+                    {{-- Column 2: Progress Bars (MoMo Style) --}}
+                    <div class="md:col-span-5 space-y-2 px-2">
+                        ${renderBreakdownRow('9 - 10 sao', bd.stars_9_10?.percentage || 0, bd.stars_9_10?.count || 0, 'bg-emerald-500')}
+                        ${renderBreakdownRow('7 - 8 sao', bd.stars_7_8?.percentage || 0, bd.stars_7_8?.count || 0, 'bg-blue-500')}
+                        ${renderBreakdownRow('5 - 6 sao', bd.stars_5_6?.percentage || 0, bd.stars_5_6?.count || 0, 'bg-yellow-500')}
+                        ${renderBreakdownRow('3 - 4 sao', bd.stars_3_4?.percentage || 0, bd.stars_3_4?.count || 0, 'bg-orange-500')}
+                        ${renderBreakdownRow('1 - 2 sao', bd.stars_1_2?.percentage || 0, bd.stars_1_2?.count || 0, 'bg-red-500')}
+                    </div>
+
+                    {{-- Column 3: Emotion Highlight Chips --}}
+                    <div class="md:col-span-3 border-t md:border-t-0 md:border-l border-[var(--color-cinema-border)]/60 pt-4 md:pt-0 md:pl-5">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[var(--color-cinema-accent)] mb-3 flex items-center gap-1.5">
+                            Điểm nhấn cảm xúc
+                        </h4>
+                        <div class="space-y-2">
+                            ${tags.slice(0, 4).map(t => `
+                                <div class="flex items-center justify-between text-xs bg-[var(--color-cinema-card)] px-3 py-1.5 rounded-lg border border-[var(--color-cinema-border)]/60">
+                                    <span class="text-white">${t.tag}</span>
+                                    <span class="font-bold text-[var(--color-cinema-primary)]">${t.percentage}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBreakdownRow(label, pct, count, barColor) {
+            return `
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="w-16 text-[var(--color-cinema-text-muted)] font-medium shrink-0">${label}</span>
+                    <div class="flex-1 h-2 rounded-full overflow-hidden bg-[var(--color-cinema-card)] border border-[var(--color-cinema-border)]/40">
+                        <div class="h-full ${barColor} rounded-full transition-all duration-700" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="w-9 text-right text-[var(--color-cinema-text-muted)] text-[11px] font-mono shrink-0">${pct}%</span>
+                </div>
+            `;
         }
 
         function loadMoreReviews() {
             loadReviews(movieId, reviewsPage + 1);
         }
 
-        function renderReviewItem(review) {
+        function renderMomoReviewItem(review) {
             const date = new Date(review.created_at);
             const dateStr = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const user = review.user || {};
             const initial = (user.name || '?').charAt(0).toUpperCase();
             const avatarHtml = user.avatar
-                ? `<img src="${user.avatar}" alt="${user.name}" class="w-10 h-10 rounded-full object-cover">`
-                : `<div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">${initial}</div>`;
+                ? `<img src="${user.avatar}" alt="${user.name}" class="w-11 h-11 rounded-full object-cover border border-[var(--color-cinema-border)] shadow">`
+                : `<div class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shadow" style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">${initial}</div>`;
+
+            const rVal = review.rating || 10;
+            const rBadgeLabel = rVal >= 9 ? 'Cực phẩm' : (rVal >= 7 ? 'Hay' : (rVal >= 5 ? 'Ổn' : 'Bình thường'));
+            const rBadgeColor = rVal >= 9 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
+                               (rVal >= 7 ? 'bg-blue-500/15 text-blue-400 border-blue-500/30' :
+                               'bg-yellow-500/15 text-yellow-400 border-yellow-500/30');
+
+            const currentLikes = helpfulCounts[review.id] || Math.floor((review.id * 7) % 23) + 2;
 
             return `
-                <div class="glass rounded-xl p-4 mb-3">
-                    <div class="flex items-start gap-3">
+                <div class="glass rounded-2xl p-5 border border-[var(--color-cinema-border)] hover:border-[var(--color-cinema-primary)]/40 transition-all duration-300 shadow-md">
+                    <div class="flex items-start gap-3.5">
                         <div class="shrink-0">${avatarHtml}</div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-sm font-semibold text-white">${user.name || 'Ẩn danh'}</span>
+                            {{-- User Header --}}
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-white">${user.name || 'Khán giả CineStar'}</span>
+                                    {{-- MoMo Verified Badge --}}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm" title="Khán giả đã mua vé và xem phim hoàn tất tại rạp">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                        Đã xem tại rạp
+                                    </span>
+                                </div>
                                 <span class="text-xs text-[var(--color-cinema-text-muted)]">${dateStr}</span>
                             </div>
-                            <div class="flex items-center gap-1 mb-2">
-                                <span class="text-sm font-bold" style="color: var(--color-cinema-accent);">${review.rating}</span>
-                                <span class="text-xs text-[var(--color-cinema-text-muted)]">/ 10</span>
+
+                            {{-- Rating Pill --}}
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${rBadgeColor}">
+                                    <span class="text-yellow-400">★</span>
+                                    <span>${rVal} / 10</span>
+                                    <span class="opacity-80 font-normal">| ${rBadgeLabel}</span>
+                                </div>
                             </div>
-                            ${review.comment ? `<p class="text-sm text-[var(--color-cinema-text-muted)] leading-relaxed">${review.comment}</p>` : ''}
+
+                            {{-- Comment Content --}}
+                            ${review.comment ? `
+                                <p class="text-sm text-gray-200 leading-relaxed font-normal whitespace-pre-line mb-3">
+                                    ${review.comment}
+                                </p>
+                            ` : ''}
+
+                            {{-- Interaction Bar (MoMo Style) --}}
+                            <div class="pt-2 border-t border-[var(--color-cinema-border)]/40 flex items-center justify-between text-xs text-[var(--color-cinema-text-muted)]">
+                                <button type="button" onclick="toggleHelpful(this, ${review.id})" class="flex items-center gap-1.5 hover:text-[var(--color-cinema-primary)] transition-colors cursor-pointer group">
+                                    <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                    </svg>
+                                    <span>Hữu ích (<b id="like-count-${review.id}">${currentLikes}</b>)</span>
+                                </button>
+                                <span class="text-[11px] text-gray-500">Trải nghiệm rạp CineStar</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
+        }
+
+        function toggleHelpful(btn, reviewId) {
+            const countEl = document.getElementById(`like-count-${reviewId}`);
+            if (!countEl) return;
+            let current = parseInt(countEl.textContent) || 0;
+            if (btn.classList.contains('liked')) {
+                btn.classList.remove('liked');
+                btn.classList.remove('text-[var(--color-cinema-primary)]');
+                countEl.textContent = current - 1;
+            } else {
+                btn.classList.add('liked');
+                btn.classList.add('text-[var(--color-cinema-primary)]');
+                countEl.textContent = current + 1;
+            }
         }
 
         function loadShows(movieId) {

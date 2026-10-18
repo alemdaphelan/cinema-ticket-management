@@ -29,7 +29,7 @@
                 <a href="/" class="text-sm font-medium hover:text-[var(--color-cinema-primary)] transition-colors {{ request()->is('/') ? 'text-[var(--color-cinema-primary)]' : 'text-[var(--color-cinema-text-muted)]' }}">
                     Trang chủ
                 </a>
-                <a href="/#genres" class="text-sm font-medium hover:text-[var(--color-cinema-primary)] transition-colors text-[var(--color-cinema-text-muted)]">
+                <a href="/genres" class="text-sm font-medium hover:text-[var(--color-cinema-primary)] transition-colors {{ request()->is('genres*') ? 'text-[var(--color-cinema-primary)] font-semibold' : 'text-[var(--color-cinema-text-muted)]' }}">
                     Thể loại
                 </a>
                 <a href="/schedule" class="text-sm font-medium hover:text-[var(--color-cinema-primary)] transition-colors {{ request()->is('schedule') ? 'text-[var(--color-cinema-primary)]' : 'text-[var(--color-cinema-text-muted)]' }}">
@@ -133,10 +133,11 @@
         {{-- Mobile Menu --}}
         <div id="mobile-menu" class="hidden md:hidden mt-3 pb-3 border-t border-[var(--color-cinema-border)]">
             <div class="flex flex-col gap-2 pt-3">
-                <a href="/" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)]">Trang chủ</a>
-                <a href="/schedule" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)]">Lịch chiếu</a>
+                <a href="/" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)] {{ request()->is('/') ? 'text-[var(--color-cinema-primary)] font-semibold' : '' }}">Trang chủ</a>
+                <a href="/genres" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)] {{ request()->is('genres*') ? 'text-[var(--color-cinema-primary)] font-semibold' : '' }}">Thể loại</a>
+                <a href="/schedule" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)] {{ request()->is('schedule*') ? 'text-[var(--color-cinema-primary)] font-semibold' : '' }}">Lịch chiếu</a>
                 @auth
-                    <a href="/booking/history" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)]">Vé của tôi</a>
+                    <a href="/booking/history" class="px-3 py-2 rounded-lg text-sm hover:bg-[var(--color-cinema-card)] {{ request()->is('booking/history*') ? 'text-[var(--color-cinema-primary)] font-semibold' : '' }}">Vé của tôi</a>
                 @endauth
             </div>
         </div>

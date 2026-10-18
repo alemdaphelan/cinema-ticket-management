@@ -33,10 +33,18 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout')->middleware('auth');
 
+// === Thể loại ===
+Route::get('/genres', function () {
+    return view('pages.genres');
+})->name('genres');
+
 // === Phim ===
 Route::get('/movies/{id}', function (int $id) {
     return view('pages.movie-detail', ['movieId' => $id]);
 })->name('movie.detail');
+
+Route::post('/movies/{id}/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('movie.review.submit');
+Route::post('/api/movies/{id}/reviews', [App\Http\Controllers\ReviewController::class, 'store']);
 
 // === Lịch chiếu ===
 Route::get('/schedule', function () {

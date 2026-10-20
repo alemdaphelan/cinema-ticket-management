@@ -33,8 +33,38 @@ class BookingController extends Controller
 
         $show = Show::findOrFail($showId);
 
+        // Chống spam giữ ghế: Nếu tài khoản hủy/để hết hạn >= 3 đơn trong 15 phút gần nhất, tạm khóa đặt vé
+        if ($userId) {
+            $recentCancelledCount = Order::where('user_id', $userId)
+                ->where('status', 'cancelled')
+                ->where('updated_at', '>=', now()->subMinutes(15))
+                ->count();
+
+            if ($recentCancelledCount >= 3) {
+                // Lấy đơn hủy gần nhất để tính thời gian còn lại của cooldown 15 phút
+                $lastCancelled = Order::where('user_id', $userId)
+                    ->where('status', 'cancelled')
+                    ->latest('updated_at')
+                    ->first();
+
+                $cooldownEnds = $lastCancelled ? $lastCancelled->updated_at->addMinutes(15) : now();
+                $minutesRemaining = max(1, (int) now()->diffInMinutes($cooldownEnds, false));
+
+                return response()->json([
+                    'message' => "Bạn đã hủy hoặc để hết hạn đơn giữ ghế quá nhiều lần. Để đảm bảo công bằng cho khán giả khác, tài khoản của bạn tạm thời bị giới hạn đặt vé trong {$minutesRemaining} phút nữa."
+                ], 429);
+            }
+        }
+
         try {
             $order = DB::transaction(function () use ($showId, $seatIds, $userId, $show) {
+                // Tự động hủy các đơn pending cũ của chính user này (chống spam giữ ghế nhiều lần)
+                if ($userId) {
+                    Order::where('user_id', $userId)
+                        ->where('status', 'pending')
+                        ->update(['status' => 'cancelled']);
+                }
+
                 // Lock trực tiếp trên bảng seats (Tránh double booking khi chưa có dữ liệu OrderSeat)
                 $lockedPhysicalSeats = \App\Models\Seat::whereIn('id', $seatIds)->lockForUpdate()->get();
 

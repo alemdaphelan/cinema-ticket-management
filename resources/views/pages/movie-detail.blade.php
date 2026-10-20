@@ -163,9 +163,6 @@
                             <div>
                                 <div class="flex items-center gap-2.5">
                                     <h2 class="text-xl md:text-2xl font-bold text-white">Đánh giá từ khán giả</h2>
-                                    <span class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-pink-500/15 text-pink-400 border border-pink-500/30 flex items-center shadow-sm">
-                                        MoMo Verified
-                                    </span>
                                 </div>
                                 <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] mt-1">
                                     Đánh giá minh bạch & khách quan từ cộng đồng khán giả đã thưởng thức phim tại rạp
@@ -198,10 +195,14 @@
                                      style="background: linear-gradient(135deg, rgba(30, 20, 35, 0.95), rgba(20, 20, 28, 0.95));">
                                     <div class="flex items-center justify-between flex-wrap gap-3 mb-6 pb-4 border-b border-[var(--color-cinema-border)]/50">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow" 
-                                                 style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">
-                                                ${(window.AUTH_USER?.name || 'U').charAt(0).toUpperCase()}
-                                            </div>
+                                            ${window.AUTH_USER?.avatar ? `
+                                                <img src="${window.AUTH_USER.avatar}" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-[var(--color-cinema-border)] shadow">
+                                            ` : `
+                                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow" 
+                                                     style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">
+                                                    ${window.AUTH_USER?.initial || (window.AUTH_USER?.name || 'U').replace(/^Khách hàng\s+/i, '').charAt(0).toUpperCase()}
+                                                </div>
+                                            `}
                                             <div>
                                                 <h3 class="text-base font-bold text-white flex items-center gap-2">
                                                     Viết đánh giá của bạn
@@ -294,7 +295,6 @@
                                             <div>
                                                 <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
                                                     <h3 class="text-base md:text-lg font-bold text-white">Quyền đánh giá dành cho khán giả đã xem phim</h3>
-                                                    <span class="text-[10px] px-2 py-0.5 rounded font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">MOMO VERIFIED</span>
                                                 </div>
                                                 <p class="text-xs md:text-sm text-[var(--color-cinema-text-muted)] max-w-xl leading-relaxed">
                                                     Để đảm bảo tính khách quan và uy tín, chỉ những khán giả đã đặt vé và xem phim xong tại cụm rạp CineStar mới có quyền tham gia chấm điểm và viết bình luận.
@@ -433,7 +433,15 @@
             const comment = document.getElementById('review-comment').value.trim();
 
             if (!rating) {
-                alert('Vui lòng chọn số điểm đánh giá (từ 1 đến 10)!');
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Chưa chọn điểm',
+                        message: 'Vui lòng chọn số điểm đánh giá (từ 1 đến 10)!',
+                        type: 'warning'
+                    });
+                } else {
+                    alert('Vui lòng chọn số điểm đánh giá (từ 1 đến 10)!');
+                }
                 return;
             }
 
@@ -454,16 +462,41 @@
             .then(({ ok, status, data }) => {
                 if (ok) {
                     movieHasReviewed = true;
-                    alert('Chúc mừng bạn đã gửi đánh giá thành công! Nhận xét đã được ghi nhận vào hệ thống CineStar.');
-                    window.location.reload();
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Thành công',
+                            message: 'Chúc mừng bạn đã gửi đánh giá thành công! Nhận xét đã được ghi nhận vào hệ thống.',
+                            type: 'success',
+                            onConfirm: () => window.location.reload()
+                        });
+                    } else {
+                        alert('Chúc mừng bạn đã gửi đánh giá thành công!');
+                        window.location.reload();
+                    }
                 } else {
-                    alert(data.message || 'Không thể gửi đánh giá. Vui lòng kiểm tra lại!');
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Không thể gửi đánh giá',
+                            message: data.message || 'Không thể gửi đánh giá. Vui lòng kiểm tra lại!',
+                            type: 'error'
+                        });
+                    } else {
+                        alert(data.message || 'Không thể gửi đánh giá. Vui lòng kiểm tra lại!');
+                    }
                     btn.disabled = false;
                     btn.innerHTML = 'Gửi đánh giá ngay';
                 }
             })
             .catch(() => {
-                alert('Có lỗi kết nối máy chủ. Vui lòng thử lại sau!');
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Lỗi kết nối',
+                        message: 'Có lỗi kết nối máy chủ. Vui lòng thử lại sau!',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Có lỗi kết nối máy chủ. Vui lòng thử lại sau!');
+                }
                 btn.disabled = false;
                 btn.innerHTML = 'Gửi đánh giá ngay';
             });
@@ -618,13 +651,54 @@
             loadReviews(movieId, reviewsPage + 1);
         }
 
+        function formatWatchedTime(timeString) {
+            if (!timeString) return 'Gần đây';
+            const past = new Date(timeString);
+            const now = new Date();
+            const diffMs = Math.max(0, now - past);
+            const diffSeconds = Math.floor(diffMs / 1000);
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays === 0) {
+                if (diffHours === 0) {
+                    return 'Vừa xem hôm nay';
+                }
+                return `Xem hôm nay (${diffHours} giờ trước)`;
+            }
+
+            // 1..7 ngày trước
+            if (diffDays <= 7) {
+                return `Xem ${diffDays} ngày trước`;
+            }
+
+            // 1..4 tuần trước
+            const diffWeeks = Math.floor(diffDays / 7);
+            if (diffWeeks <= 4) {
+                return `Xem ${diffWeeks} tuần trước`;
+            }
+
+            // 1..12 tháng trước
+            const diffMonths = Math.floor(diffDays / 30);
+            if (diffMonths <= 12) {
+                return `Xem ${Math.max(1, diffMonths)} tháng trước`;
+            }
+
+            // 1..n năm trước
+            const diffYears = Math.floor(diffDays / 365);
+            return `Xem ${Math.max(1, diffYears)} năm trước`;
+        }
+
         function renderMomoReviewItem(review) {
             const date = new Date(review.created_at);
             const dateStr = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const watchedText = formatWatchedTime(review.watched_at || review.created_at);
             const user = review.user || {};
-            const initial = (user.name || '?').charAt(0).toUpperCase();
+            const userName = (user.name || 'Khán giả CineStar').replace(/^Khách hàng\s+/i, '');
+            const initial = userName.charAt(0).toUpperCase();
             const avatarHtml = user.avatar
-                ? `<img src="${user.avatar}" alt="${user.name}" class="w-11 h-11 rounded-full object-cover border border-[var(--color-cinema-border)] shadow">`
+                ? `<img src="${user.avatar}" alt="${userName}" class="w-11 h-11 rounded-full object-cover border border-[var(--color-cinema-border)] shadow">`
                 : `<div class="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white shadow" style="background: linear-gradient(135deg, var(--color-cinema-primary), var(--color-cinema-accent));">${initial}</div>`;
 
             const rVal = review.rating || 10;
@@ -642,15 +716,15 @@
                         <div class="flex-1 min-w-0">
                             {{-- User Header --}}
                             <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-bold text-white">${user.name || 'Khán giả CineStar'}</span>
-                                    {{-- MoMo Verified Badge --}}
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-white">${userName}</span>
+                                    {{-- MoMo Verified Badge kèm thời gian xem --}}
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm" title="Khán giả đã mua vé và xem phim hoàn tất tại rạp">
                                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                        Đã xem tại rạp
+                                        Đã xem tại rạp • ${watchedText}
                                     </span>
                                 </div>
-                                <span class="text-xs text-[var(--color-cinema-text-muted)]">${dateStr}</span>
+                                <span class="text-xs text-[var(--color-cinema-text-muted)]" title="Ngày đăng đánh giá">${dateStr}</span>
                             </div>
 
                             {{-- Rating Pill --}}
@@ -757,14 +831,18 @@
 
                     showsList.innerHTML = shows.map(show => {
                         const startTime = new Date(show.start_time);
-                        const timeStr = startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                        const durationMins = show.movie?.duration_minutes || movieData?.duration_minutes || 120;
+                        const endTime = show.end_time ? new Date(show.end_time) : new Date(startTime.getTime() + durationMins * 60000);
+
+                        const startStr = startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                        const endStr = endTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                         const isPast = startTime < new Date();
 
                         return `
                             <a href="${isPast ? '#' : '/booking/seats/' + show.id}"
                                class="glass rounded-xl p-4 text-center transition-all ${isPast ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:border-[var(--color-cinema-primary)]'}"
                                ${isPast ? 'onclick="event.preventDefault()"' : ''}>
-                                <div class="text-2xl font-bold text-white mb-1">${timeStr}</div>
+                                <div class="text-xl font-bold text-white mb-0.5">${startStr} ~ ${endStr}</div>
                                 <div class="text-xs text-[var(--color-cinema-text-muted)]">${show.room?.name || 'Phòng chiếu'}</div>
                                 <div class="text-sm font-semibold mt-2" style="color: var(--color-cinema-accent);">${Number(show.price).toLocaleString('vi-VN')}đ</div>
                                 ${isPast ? '<span class="text-xs text-red-400 mt-1 block">Đã chiếu</span>' : ''}

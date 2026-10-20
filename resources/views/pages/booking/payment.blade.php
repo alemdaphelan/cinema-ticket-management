@@ -281,19 +281,6 @@
 
         let isSubmitted = false;
 
-        window.addEventListener('pagehide', function() {
-            if (!isSubmitted && orderData && orderData.status === 'pending') {
-                fetch(`/api/orders/${orderId}/cancel`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': window.CSRF_TOKEN,
-                        'Accept': 'application/json'
-                    },
-                    keepalive: true
-                });
-            }
-        });
-
         function processPayment() {
             const method = document.querySelector('input[name="payment_method"]:checked').value;
             const btn = document.getElementById('btn-pay');
@@ -312,7 +299,11 @@
                     clearInterval(countdownInterval);
                     window.location.href = `/booking/success/${orderId}`;
                 } else {
-                    alert(data.message || 'Thanh toán thất bại!');
+                    showNotificationModal({
+                        title: 'Thanh toán không thành công',
+                        message: data.message || 'Không thể xử lý giao dịch. Vui lòng kiểm tra lại!',
+                        type: 'error'
+                    });
                     btn.disabled = false;
                     btn.textContent = 'Thanh toán ngay';
                 }

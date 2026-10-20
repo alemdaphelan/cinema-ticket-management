@@ -63,6 +63,25 @@ class ReviewController extends Controller
 
         $reviews = $query->orderBy('created_at', 'desc')->paginate(10);
 
+        // Đính kèm thông tin thời điểm xem phim (suất chiếu) của từng người đánh giá
+        $items = collect($reviews->items())->map(function ($review) use ($movieId) {
+            $order = Order::where('user_id', $review->user_id)
+                ->whereIn('status', ['paid', 'completed'])
+                ->whereHas('show', function ($q) use ($movieId) {
+                    $q->where('movie_id', $movieId);
+                })
+                ->with(['show' => function ($q) {
+                    $q->select('id', 'movie_id', 'start_time', 'end_time');
+                }])
+                ->latest('id')
+                ->first();
+
+            $watchedAt = $order && $order->show ? $order->show->start_time : $review->created_at;
+            $reviewArray = $review->toArray();
+            $reviewArray['watched_at'] = $watchedAt;
+            return $reviewArray;
+        });
+
         return response()->json([
             'summary' => [
                 'average_rating' => $avgRating,
@@ -77,7 +96,7 @@ class ReviewController extends Controller
                 ],
                 'top_tags' => $momoTags,
             ],
-            'data' => $reviews->items(),
+            'data' => $items,
             'current_page' => $reviews->currentPage(),
             'last_page' => $reviews->lastPage(),
             'total' => $reviews->total(),

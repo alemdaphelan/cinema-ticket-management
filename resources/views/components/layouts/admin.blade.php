@@ -118,5 +118,6 @@
     <script>
         window.CSRF_TOKEN = '{{ csrf_token() }}';
     </script>
+    <x-notification-modal />
 </body>
 </html>

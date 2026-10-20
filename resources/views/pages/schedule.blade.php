@@ -81,13 +81,17 @@
                                     <div class="flex flex-wrap gap-2 mt-3">
                                         ${group.shows.map(show => {
                                             const t = new Date(show.start_time);
+                                            const durationMins = group.movie?.duration_minutes || 120;
+                                            const endTime = show.end_time ? new Date(show.end_time) : new Date(t.getTime() + durationMins * 60000);
+                                            const startStr = t.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+                                            const endStr = endTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
                                             const isPast = t < new Date();
                                             return `<a href="${isPast ? '#' : '/booking/seats/' + show.id}"
                                                        class="px-3 py-2 rounded-lg text-sm font-medium text-center transition-all ${isPast ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:border-[var(--color-cinema-primary)]'}"
                                                        style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);"
                                                        ${isPast ? 'onclick="event.preventDefault()"' : ''}>
-                                                        <span class="text-white">${t.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})}</span>
-                                                        <span class="text-xs text-[var(--color-cinema-text-muted)] block">${show.room?.name || ''}</span>
+                                                        <span class="text-white font-semibold">${startStr} ~ ${endStr}</span>
+                                                        <span class="text-xs text-[var(--color-cinema-text-muted)] block mt-0.5">${show.room?.name || ''}</span>
                                                     </a>`;
                                         }).join('')}
                                     </div>

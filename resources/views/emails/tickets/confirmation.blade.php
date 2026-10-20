@@ -7,7 +7,7 @@ Cảm ơn bạn đã đặt vé tại CineStar. Dưới đây là thông tin vé
 
 **Phim:** {{ $order->show->movie->title ?? 'N/A' }}
 **Rạp:** {{ $order->show->room->name ?? 'N/A' }}
-**Giờ chiếu:** {{ \Carbon\Carbon::parse($order->show->start_time)->format('H:i - d/m/Y') }}
+**Giờ chiếu:** {{ \Carbon\Carbon::parse($order->show->start_time)->format('H:i') }} ~ {{ $order->show->end_time ? \Carbon\Carbon::parse($order->show->end_time)->format('H:i') : \Carbon\Carbon::parse($order->show->start_time)->addMinutes($order->show->movie->duration_minutes ?? 120)->format('H:i') }} - {{ \Carbon\Carbon::parse($order->show->start_time)->format('d/m/Y') }}
 **Ghế:** {{ $order->seats->map(fn($s) => $s->seat->row_label . $s->seat->seat_number)->join(', ') }}
 
 @if($order->snacks && $order->snacks->count() > 0)

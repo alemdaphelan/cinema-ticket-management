@@ -240,7 +240,18 @@
         // CSRF token cho fetch requests
         window.CSRF_TOKEN = '{{ csrf_token() }}';
         window.IS_AUTHENTICATED = {{ Auth::check() ? 'true' : 'false' }};
-        window.AUTH_USER = {!! Auth::check() ? json_encode(Auth::user()) : 'null' !!};
+        @php
+            $authUser = Auth::user();
+            if ($authUser) {
+                $authUserArray = $authUser->toArray();
+                $cleanedName = preg_replace('/^Khách hàng\s+/iu', '', $authUser->name);
+                $authUserArray['name'] = $cleanedName;
+                $authUserArray['initial'] = mb_strtoupper(mb_substr($cleanedName, 0, 1, 'UTF-8'), 'UTF-8');
+            } else {
+                $authUserArray = null;
+            }
+        @endphp
+        window.AUTH_USER = {!! json_encode($authUserArray) !!};
         
         // Live Search Logic
         document.addEventListener('DOMContentLoaded', function() {
@@ -335,5 +346,6 @@
     </script>
 
     <x-chatbot />
+    <x-notification-modal />
 </body>
 </html>

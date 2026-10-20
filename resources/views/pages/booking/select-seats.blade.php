@@ -101,6 +101,7 @@
         </div>
     </div>
 
+
     <script>
         const showId = {{ $showId }};
         let showData = null;
@@ -127,11 +128,16 @@
                     // Update header
                     document.getElementById('show-title').textContent = showData.movie?.title || 'Chọn ghế';
                     const startTime = new Date(showData.start_time);
-                    document.getElementById('show-info').textContent = `${startTime.toLocaleDateString('vi-VN')} • ${startTime.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})} • ${showData.room?.name || ''}`;
+                    const durationMins = showData.movie?.duration_minutes || 120;
+                    const endTime = showData.end_time ? new Date(showData.end_time) : new Date(startTime.getTime() + durationMins * 60000);
+                    const startStr = startTime.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+                    const endStr = endTime.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+
+                    document.getElementById('show-info').textContent = `${startTime.toLocaleDateString('vi-VN')} • ${startStr} ~ ${endStr} • ${showData.room?.name || ''}`;
 
                     // Update summary
                     document.getElementById('summary-movie').textContent = showData.movie?.title || '—';
-                    document.getElementById('summary-time').textContent = startTime.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+                    document.getElementById('summary-time').textContent = `${startStr} ~ ${endStr}`;
                     document.getElementById('summary-room').textContent = showData.room?.name || '—';
 
                     renderSeats();
@@ -187,7 +193,11 @@
                 selectedSeats.splice(index, 1);
             } else {
                 if (selectedSeats.length >= 8) {
-                    alert('Bạn chỉ được chọn tối đa 8 ghế!');
+                    showNotificationModal({
+                        title: 'Giới hạn số ghế',
+                        message: 'Bạn chỉ được chọn tối đa 8 ghế trong một lần đặt vé!',
+                        type: 'warning'
+                    });
                     return;
                 }
                 selectedSeats.push({ id: seatId, row: rowLabel, number: seatNumber, type: type });
@@ -250,7 +260,15 @@
                 window.location.href = `/booking/snacks/${result.data.order_id}`;
             })
             .catch(err => {
-                alert(err.message);
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Không thể giữ ghế',
+                        message: err.message,
+                        type: 'error'
+                    });
+                } else {
+                    alert(err.message);
+                }
                 btn.disabled = false;
                 btn.textContent = 'Giữ ghế & Tiếp tục';
                 loadSeatMap();

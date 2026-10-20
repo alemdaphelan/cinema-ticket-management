@@ -73,7 +73,15 @@
 
         function processQRData(qrString) {
             if (!qrString) {
-                alert('Vui lòng nhập mã QR');
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Thiếu dữ liệu',
+                        message: 'Vui lòng nhập hoặc quét mã QR hợp lệ',
+                        type: 'warning'
+                    });
+                } else {
+                    alert('Vui lòng nhập mã QR');
+                }
                 return;
             }
 
@@ -97,11 +105,15 @@
                     
                     const o = data.data;
                     const startTime = new Date(o.show?.start_time);
+                    const durationMins = o.show?.movie?.duration_minutes || 120;
+                    const endTime = o.show?.end_time ? new Date(o.show.end_time) : new Date(startTime.getTime() + durationMins * 60000);
+                    const startStr = startTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+                    const endStr = endTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
                     infoBox.innerHTML = `
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Mã ĐH</span><span class="text-white font-bold">#${o.id}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Phim</span><span class="text-white">${o.show?.movie?.title}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Khách hàng</span><span class="text-white">${o.user?.name || ''}</span></div>
-                        <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Giờ chiếu</span><span class="text-white">${startTime.toLocaleTimeString('vi-VN')}</span></div>
+                        <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Giờ chiếu</span><span class="text-white font-medium">${startStr} ~ ${endStr}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Phòng</span><span class="text-white font-bold">${o.show?.room?.name}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Ghế</span><span class="text-[var(--color-cinema-accent)] font-bold text-lg">${o.seats?.map(s => s.seat?.row_label + s.seat?.seat_number).join(', ')}</span></div>
                         ${o.snacks?.length > 0 ? `<div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Bắp nước</span><span class="text-[var(--color-cinema-accent)] font-semibold">${o.snacks.map(s => s.snack?.name + ' x' + s.quantity).join(', ')}</span></div>` : ''}
@@ -125,7 +137,15 @@
                 resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             })
             .catch(err => {
-                alert('Lỗi kết nối Server!');
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Lỗi kết nối',
+                        message: 'Không thể kết nối đến máy chủ để xác thực vé!',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Lỗi kết nối Server!');
+                }
                 console.error(err);
             });
         }

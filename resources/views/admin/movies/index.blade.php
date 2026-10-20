@@ -84,13 +84,40 @@
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
                 if (ok) {
-                    alert('Thành công! Đã kéo phim từ TMDB về hệ thống.');
-                    loadMovies();
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Thành công',
+                            message: 'Đã kéo phim từ TMDB về hệ thống thành công!',
+                            type: 'success',
+                            onConfirm: () => loadMovies()
+                        });
+                    } else {
+                        alert('Thành công! Đã kéo phim từ TMDB về hệ thống.');
+                        loadMovies();
+                    }
                 } else {
-                    alert('Lỗi: ' + (data.message || 'Không thể kéo dữ liệu'));
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Lỗi kéo dữ liệu TMDB',
+                            message: data.message || 'Không thể kéo dữ liệu từ TMDB',
+                            type: 'error'
+                        });
+                    } else {
+                        alert('Lỗi: ' + (data.message || 'Không thể kéo dữ liệu'));
+                    }
                 }
             })
-            .catch(err => alert('Lỗi kết nối Server!'))
+            .catch(err => {
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Lỗi kết nối',
+                        message: 'Không thể kết nối đến máy chủ TMDB/API!',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Lỗi kết nối Server!');
+                }
+            })
             .finally(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

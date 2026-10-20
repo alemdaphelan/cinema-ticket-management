@@ -8,7 +8,7 @@
                     <p class="text-sm text-[var(--color-cinema-text-muted)] mt-2">Nhập email của bạn và chúng tôi sẽ gửi liên kết để đặt lại mật khẩu</p>
                 </div>
 
-                <form onsubmit="event.preventDefault(); alert('Đây là giao diện demo, chức năng gửi email chưa được kết nối!');" class="space-y-5">
+                <form onsubmit="event.preventDefault(); window.showNotificationModal ? window.showNotificationModal({title: 'Thông báo', message: 'Đây là giao diện demo, chức năng gửi email chưa được kết nối!', type: 'info'}) : alert('Đây là giao diện demo, chức năng gửi email chưa được kết nối!');" class="space-y-5">
                     <div>
                         <label for="email" class="block text-sm font-medium mb-2 text-[var(--color-cinema-text-muted)]">Email đã đăng ký</label>
                         <input type="email" id="email" name="email" required autofocus

@@ -91,19 +91,6 @@
 
         let isSubmitted = false;
 
-        window.addEventListener('pagehide', function() {
-            if (!isSubmitted && orderId) {
-                fetch(`/api/orders/${orderId}/cancel`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': window.CSRF_TOKEN,
-                        'Accept': 'application/json'
-                    },
-                    keepalive: true
-                });
-            }
-        });
-
         function submitSnacks() {
             const snackItems = [];
             for (const [id, qty] of Object.entries(cart)) {
@@ -132,7 +119,17 @@
                 isSubmitted = true;
                 window.location.href = `/booking/payment/${orderId}`;
             })
-            .catch(err => alert('Lỗi: ' + err.message));
+            .catch(err => {
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Lỗi chọn bắp nước',
+                        message: err.message || 'Không thể lưu danh sách bắp nước. Vui lòng thử lại!',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Lỗi: ' + err.message);
+                }
+            });
         }
     </script>
 </x-layouts.main>

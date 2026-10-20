@@ -37,6 +37,10 @@
             .then(result => {
                 const o = result.data;
                 const startTime = new Date(o.show?.start_time);
+                const durationMins = o.show?.movie?.duration_minutes || 120;
+                const endTime = o.show?.end_time ? new Date(o.show.end_time) : new Date(startTime.getTime() + durationMins * 60000);
+                const startStr = startTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+                const endStr = endTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
                 
                 let statusTitle = '';
                 let statusMessage = '';
@@ -79,7 +83,7 @@
                     <div class="glass rounded-xl p-4 space-y-2 text-sm">
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Phim</span><span class="text-white font-semibold">${o.show?.movie?.title || '—'}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Ngày chiếu</span><span class="text-white">${startTime.toLocaleDateString('vi-VN')}</span></div>
-                        <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Giờ chiếu</span><span class="text-white">${startTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'})}</span></div>
+                        <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Giờ chiếu</span><span class="text-white font-medium">${startStr} ~ ${endStr}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Phòng</span><span class="text-white">${o.show?.room?.name || '—'}</span></div>
                         <div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Ghế</span><span class="text-[var(--color-cinema-accent)] font-bold">${o.seats?.map(s => s.seat?.row_label + s.seat?.seat_number).join(', ') || '—'}</span></div>
                         ${o.snacks?.length > 0 ? `<div class="flex justify-between"><span class="text-[var(--color-cinema-text-muted)]">Bắp nước</span><span class="text-white">${o.snacks.map(s => s.snack?.name + ' x' + s.quantity).join(', ')}</span></div>` : ''}

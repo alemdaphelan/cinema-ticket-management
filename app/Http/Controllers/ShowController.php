@@ -43,7 +43,7 @@ class ShowController extends Controller
      */
     public function getSeats(int $id)
     {
-        $show = Show::with('room')->findOrFail($id);
+        $show = Show::with(['room', 'movie'])->findOrFail($id);
         $seats = Seat::where('room_id', $show->room_id)->orderBy('row_label')->orderBy('seat_number')->get();
 
         // Lấy danh sách ghế đã bị đặt hoặc đang giữ

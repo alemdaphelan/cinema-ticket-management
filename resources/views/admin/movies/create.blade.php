@@ -143,15 +143,46 @@
             })
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
-                if (ok) { alert('Thêm phim thành công!'); window.location.href = '/admin/movies'; }
-                else {
-                    alert(JSON.stringify(data.errors || data.message));
+                if (ok) {
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Thành công',
+                            message: 'Thêm phim mới thành công!',
+                            type: 'success',
+                            onConfirm: () => window.location.href = '/admin/movies'
+                        });
+                    } else {
+                        alert('Thêm phim thành công!');
+                        window.location.href = '/admin/movies';
+                    }
+                } else {
+                    let errMsg = data.message || 'Không thể tạo phim mới.';
+                    if (data.errors) {
+                        errMsg = Object.values(data.errors).flat().join('<br>');
+                    }
+                    if (window.showNotificationModal) {
+                        window.showNotificationModal({
+                            title: 'Lỗi thêm phim',
+                            message: errMsg,
+                            type: 'error'
+                        });
+                    } else {
+                        alert(errMsg);
+                    }
                     btn.disabled = false;
                     btn.textContent = 'Thêm phim';
                 }
             })
             .catch(() => {
-                alert('Có lỗi xảy ra');
+                if (window.showNotificationModal) {
+                    window.showNotificationModal({
+                        title: 'Lỗi hệ thống',
+                        message: 'Có lỗi xảy ra khi kết nối máy chủ.',
+                        type: 'error'
+                    });
+                } else {
+                    alert('Có lỗi xảy ra');
+                }
                 btn.disabled = false;
                 btn.textContent = 'Thêm phim';
             });

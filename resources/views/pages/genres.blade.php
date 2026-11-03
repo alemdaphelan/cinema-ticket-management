@@ -392,7 +392,7 @@
                     {{-- Info Area --}}
                     <div class="p-3.5 flex flex-col flex-1 justify-between gap-3">
                         <div>
-                            <h3 class="font-bold text-sm text-white line-clamp-1 group-hover:text-[var(--color-cinema-primary)] transition-colors" title="${m.title}">
+                            <h3 class="font-bold text-sm text-[var(--color-cinema-text)] line-clamp-1 group-hover:text-[var(--color-cinema-primary)] transition-colors" title="${m.title}">
                                 ${m.title}
                             </h3>
                             <p class="text-xs text-[var(--color-cinema-text-muted)] mt-1 truncate" title="${m.genre || ''}">

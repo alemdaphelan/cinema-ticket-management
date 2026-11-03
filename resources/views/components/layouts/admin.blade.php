@@ -45,11 +45,11 @@
 
                     <div class="border-t border-[var(--color-cinema-border)] my-4"></div>
 
-                    <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">
-                        Xem trang chủ
+                    <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)] hover:text-white">
+                        <span>🏠 Xem trang chủ</span>
                     </a>
-                    <a href="/staff/scan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">
-                        Quét vé
+                    <a href="/staff/scan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-success)] hover:bg-[var(--color-cinema-card)]">
+                        <span>🎟️ Chế độ Staff (Quét vé)</span>
                     </a>
                 </nav>
             </div>
@@ -67,6 +67,12 @@
                 <h1 class="text-lg font-bold">{{ $header ?? 'Dashboard' }}</h1>
 
                 <div class="flex items-center gap-3">
+                    <x-theme-toggle />
+
+                    <a href="/staff/scan" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-[var(--color-cinema-success)]/40 text-[var(--color-cinema-success)] hover:bg-[var(--color-cinema-success)]/10 transition-all">
+                        <span>Chế độ Staff</span>
+                    </a>
+
                     <span class="text-sm text-[var(--color-cinema-text-muted)]">
                         {{ Auth::user()->name ?? 'Admin' }}
                     </span>
@@ -94,6 +100,10 @@
                             <a href="/admin/snacks" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Bắp nước</a>
                             <a href="/admin/vouchers" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Voucher</a>
                             <a href="/admin/orders" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">Đơn hàng</a>
+                            
+                            <div class="border-t border-[var(--color-cinema-border)] my-3"></div>
+                            <a href="/staff/scan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-success)]">🎟️ Chế độ Staff (Quét vé)</a>
+                            <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[var(--color-cinema-text-muted)]">🏠 Xem trang chủ</a>
                         </nav>
                     </div>
                 </div>
@@ -109,7 +119,7 @@
             @endif
 
             {{-- Page Content --}}
-            <div class="p-6">
+            <div class="p-8 lg:p-10">
                 {{ $slot }}
             </div>
         </div>

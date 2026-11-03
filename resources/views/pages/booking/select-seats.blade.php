@@ -1,19 +1,24 @@
 <x-layouts.main title="Chọn ghế - CineStar">
     <div class="max-w-6xl mx-auto px-4 py-8">
+        {{-- Booking Breadcrumb Stepper --}}
+        <x-booking-breadcrumb :step="1" :showId="$showId" :orderId="$orderId ?? null" :holdExpiresAt="$holdExpiresAt ?? null" />
+
         {{-- Header --}}
         <div class="flex items-center justify-between mb-6">
             <div>
-                <a href="javascript:history.back()" class="text-sm text-[var(--color-cinema-text-muted)] hover:text-white transition-colors">← Quay lại</a>
+                <a href="/schedule" class="text-sm text-[var(--color-cinema-text-muted)] hover:text-white transition-colors">← Chọn suất chiếu khác</a>
                 <h1 class="text-2xl font-bold text-white mt-2" id="show-title">Chọn ghế</h1>
                 <p class="text-sm text-[var(--color-cinema-text-muted)]" id="show-info"></p>
             </div>
-            {{-- Countdown Timer --}}
-            <div id="countdown-container" class="hidden">
-                <div class="countdown-timer text-white px-4 py-2 rounded-xl text-center">
-                    <span class="text-xs block">Thời gian giữ ghế</span>
-                    <span class="text-2xl font-bold" id="countdown-timer">10:00</span>
+            @if(isset($holdExpiresAt) && $holdExpiresAt)
+                {{-- Countdown Timer if user already held seats and returned to step 1 --}}
+                <div id="countdown-container">
+                    <div class="countdown-timer text-white px-4 py-2 rounded-xl text-center border border-red-500/30 bg-red-500/10">
+                        <span class="text-xs block text-[var(--color-cinema-text-muted)]">Thời gian giữ ghế</span>
+                        <span class="text-2xl font-bold font-mono text-red-400" id="countdown-timer">--:--</span>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
 
         <div class="lg:flex gap-6">
@@ -104,9 +109,12 @@
 
     <script>
         const showId = {{ $showId }};
+        const existingOrderId = {{ $orderId ? $orderId : 'null' }};
+        const initialHoldExpiresAt = @json($holdExpiresAt ?? null);
         let showData = null;
         let seatsData = [];
         let selectedSeats = [];
+        let isInitialLoad = true;
         let basePrice = 0;
         let pollInterval = null;
         let countdownInterval = null;
@@ -115,7 +123,37 @@
             loadSeatMap();
             // Polling every 5 seconds
             pollInterval = setInterval(loadSeatMap, 5000);
+
+            if (initialHoldExpiresAt) {
+                startSeatCountdown(initialHoldExpiresAt);
+            }
         });
+
+        function startSeatCountdown(expiresAtStr) {
+            const expiry = new Date(expiresAtStr);
+            const timerEl = document.getElementById('countdown-timer');
+
+            function tick() {
+                if (!timerEl) return;
+                const now = new Date();
+                const diff = expiry - now;
+
+                if (diff <= 0) {
+                    clearInterval(countdownInterval);
+                    timerEl.textContent = '00:00';
+                    if (window.showToast) window.showToast('Hết thời gian giữ ghế. Vui lòng chọn lại!', 'error');
+                    loadSeatMap();
+                    return;
+                }
+
+                const mins = Math.floor(diff / 60000);
+                const secs = Math.floor((diff % 60000) / 1000);
+                timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            tick();
+            countdownInterval = setInterval(tick, 1000);
+        }
 
         function loadSeatMap() {
             fetch(`/api/shows/${showId}/seats`)
@@ -124,6 +162,25 @@
                     showData = result.data.show;
                     seatsData = result.data.seats;
                     basePrice = parseFloat(showData.price);
+
+                    // Khi người dùng quay lại trang chọn ghế từ bước sau, tự động phục hồi các ghế họ đã chọn
+                    if (isInitialLoad) {
+                        isInitialLoad = false;
+                        const userHeldIds = result.data.user_held_seat_ids || [];
+                        if (userHeldIds.length > 0 && selectedSeats.length === 0) {
+                            seatsData.forEach(seat => {
+                                if (userHeldIds.includes(seat.id)) {
+                                    selectedSeats.push({
+                                        id: seat.id,
+                                        row: seat.row_label,
+                                        number: seat.seat_number,
+                                        type: seat.type
+                                    });
+                                }
+                            });
+                            updateSummary();
+                        }
+                    }
 
                     // Update header
                     document.getElementById('show-title').textContent = showData.movie?.title || 'Chọn ghế';
@@ -139,6 +196,22 @@
                     document.getElementById('summary-movie').textContent = showData.movie?.title || '—';
                     document.getElementById('summary-time').textContent = `${startStr} ~ ${endStr}`;
                     document.getElementById('summary-room').textContent = showData.room?.name || '—';
+
+                    // Loại bỏ khỏi selectedSeats những ghế mà trong đợt cập nhật này đã bị người khác đặt/giữ
+                    if (!isInitialLoad) {
+                        const previousCount = selectedSeats.length;
+                        selectedSeats = selectedSeats.filter(sel => {
+                            const seat = seatsData.find(s => s.id === sel.id);
+                            return seat && seat.status === 'available';
+                        });
+
+                        if (selectedSeats.length < previousCount) {
+                            if (window.showToast) {
+                                window.showToast('Một ghế bạn đang xem vừa được người khác giữ. Sơ đồ ghế đã được cập nhật!', 'warning');
+                            }
+                            updateSummary();
+                        }
+                    }
 
                     renderSeats();
                 })
@@ -271,6 +344,50 @@
                 }
                 btn.disabled = false;
                 btn.textContent = 'Giữ ghế & Tiếp tục';
+                loadSeatMap();
+            });
+        }
+
+        function releaseActiveOrder(orderId) {
+            if (typeof window.showConfirmModal === 'function') {
+                window.showConfirmModal({
+                    title: 'Hủy ghế đang giữ để chọn lại?',
+                    message: 'Các ghế bạn đang giữ ở đơn hàng này sẽ được giải phóng ngay lập tức để bạn có thể chọn lại ghế mới.',
+                    type: 'warning',
+                    confirmText: 'Giải phóng ghế',
+                    cancelText: 'Tiếp tục giữ',
+                    onConfirm: function() {
+                        doReleaseActiveOrder(orderId);
+                    }
+                });
+            } else {
+                if (confirm('Bạn có chắc muốn hủy ghế đang giữ để chọn lại?')) {
+                    doReleaseActiveOrder(orderId);
+                }
+            }
+        }
+
+        function doReleaseActiveOrder(orderId) {
+            if (window.showToast) window.showToast('Đang giải phóng ghế...', 'info');
+
+            fetch(`/api/orders/${orderId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.CSRF_TOKEN,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ reason: 'change_seats' })
+            })
+            .then(res => res.json())
+            .then(() => {
+                const banner = document.getElementById('active-order-banner');
+                if (banner) banner.remove();
+                if (window.showToast) window.showToast('Đã giải phóng ghế. Bạn có thể chọn ghế mới!', 'success');
+                loadSeatMap();
+            })
+            .catch(err => {
+                console.error(err);
                 loadSeatMap();
             });
         }

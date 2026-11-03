@@ -34,9 +34,14 @@ class BookingController extends Controller
         $show = Show::findOrFail($showId);
 
         // Chống spam giữ ghế: Nếu tài khoản hủy/để hết hạn >= 3 đơn trong 15 phút gần nhất, tạm khóa đặt vé
+        // Không phạt các đơn bị hủy do người dùng đổi ghế trong luồng đặt vé
         if ($userId) {
             $recentCancelledCount = Order::where('user_id', $userId)
                 ->where('status', 'cancelled')
+                ->where(function ($q) {
+                    $q->whereNull('qr_code')
+                      ->orWhere('qr_code', 'not like', '%reason:change_seats%');
+                })
                 ->where('updated_at', '>=', now()->subMinutes(15))
                 ->count();
 
@@ -44,6 +49,10 @@ class BookingController extends Controller
                 // Lấy đơn hủy gần nhất để tính thời gian còn lại của cooldown 15 phút
                 $lastCancelled = Order::where('user_id', $userId)
                     ->where('status', 'cancelled')
+                    ->where(function ($q) {
+                        $q->whereNull('qr_code')
+                          ->orWhere('qr_code', 'not like', '%reason:change_seats%');
+                    })
                     ->latest('updated_at')
                     ->first();
 
@@ -58,11 +67,21 @@ class BookingController extends Controller
 
         try {
             $order = DB::transaction(function () use ($showId, $seatIds, $userId, $show) {
-                // Tự động hủy các đơn pending cũ của chính user này (chống spam giữ ghế nhiều lần)
+                // Kiểm tra xem user có đơn pending hiện tại cho suất chiếu này không để kế thừa thời gian giữ chỗ
+                $existingOrder = null;
+                $previousHoldExpiresAt = null;
+
                 if ($userId) {
-                    Order::where('user_id', $userId)
+                    $existingOrder = Order::where('user_id', $userId)
+                        ->where('show_id', $showId)
                         ->where('status', 'pending')
-                        ->update(['status' => 'cancelled']);
+                        ->where('hold_expires_at', '>', now())
+                        ->latest()
+                        ->first();
+
+                    if ($existingOrder) {
+                        $previousHoldExpiresAt = $existingOrder->hold_expires_at;
+                    }
                 }
 
                 // Lock trực tiếp trên bảng seats (Tránh double booking khi chưa có dữ liệu OrderSeat)
@@ -72,22 +91,41 @@ class BookingController extends Controller
                     throw new Exception('Một hoặc nhiều ghế không tồn tại!');
                 }
 
+                // Kiểm tra xem trong các ghế user chọn, có ghế nào đã có người khác đặt hoặc đang giữ không
                 $alreadyBooked = OrderSeat::whereIn('seat_id', $seatIds)
-                    ->whereHas('order', function ($q) use ($showId) {
+                    ->whereHas('order', function ($q) use ($showId, $userId) {
                         $q->where('show_id', $showId)
-                          ->where(function ($query) {
+                          ->where(function ($query) use ($userId) {
                               $query->whereIn('status', ['paid', 'completed'])
-                                    ->orWhere(function ($sub) {
+                                    ->orWhere(function ($sub) use ($userId) {
                                         $sub->where('status', 'pending')
                                             ->where('hold_expires_at', '>', now());
+                                        if ($userId) {
+                                            $sub->where('user_id', '!=', $userId);
+                                        }
                                     });
                           });
                     })
                     ->exists();
 
                 if ($alreadyBooked) {
-                    throw new Exception('Một trong các ghế bạn chọn đã có người đặt!');
+                    throw new Exception('Một hoặc nhiều ghế bạn chọn vừa có người khác giữ chỗ hoặc đặt mua. Vui lòng chọn ghế khác!');
                 }
+
+                if ($userId) {
+                    // Tự động hủy các đơn pending cũ của chính user này (đánh dấu là đổi ghế để không phạt spam)
+                    Order::where('user_id', $userId)
+                        ->where('status', 'pending')
+                        ->update([
+                            'status' => 'cancelled',
+                            'qr_code' => 'reason:change_seats',
+                        ]);
+                }
+
+                // Tính thời gian hết hạn: Nếu user đổi ghế khi đang trong phiên giữ ghế, giữ nguyên mốc đếm ngược cũ
+                $holdExpiresAt = ($previousHoldExpiresAt && \Carbon\Carbon::parse($previousHoldExpiresAt)->isFuture())
+                    ? $previousHoldExpiresAt
+                    : now()->addMinutes(10);
 
                 // Tính giá vé cho từng ghế
                 $basePrice = $show->price;
@@ -96,7 +134,7 @@ class BookingController extends Controller
                     'user_id' => $userId,
                     'show_id' => $showId,
                     'status' => 'pending',
-                    'hold_expires_at' => now()->addMinutes(10),
+                    'hold_expires_at' => $holdExpiresAt,
                     'total_amount' => 0,
                 ]);
 
@@ -117,10 +155,11 @@ class BookingController extends Controller
                 return $order;
             });
 
-            ReleaseSeatJob::dispatch($order->id)->delay(now()->addMinutes(10));
+            $remainingSeconds = max(1, (int) now()->diffInSeconds($order->hold_expires_at, false));
+            ReleaseSeatJob::dispatch($order->id)->delay(now()->addSeconds($remainingSeconds));
 
             return response()->json([
-                'message' => 'Giữ ghế thành công trong 10 phút.',
+                'message' => 'Giữ ghế thành công.',
                 'data' => [
                     'order_id' => $order->id,
                     'total_amount' => $order->total_amount,
@@ -145,7 +184,7 @@ class BookingController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'snacks' => 'required|array',
+            'snacks' => 'nullable|array',
             'snacks.*.snack_id' => 'required|exists:snacks,id',
             'snacks.*.quantity' => 'required|integer|min:1',
         ]);
@@ -154,17 +193,19 @@ class BookingController extends Controller
         OrderSnack::where('order_id', $orderId)->delete();
 
         $snackTotal = 0;
-        foreach ($validated['snacks'] as $item) {
-            $snack = Snack::findOrFail($item['snack_id']);
-            $price = $snack->price * $item['quantity'];
-            $snackTotal += $price;
+        if (!empty($validated['snacks'])) {
+            foreach ($validated['snacks'] as $item) {
+                $snack = Snack::findOrFail($item['snack_id']);
+                $price = $snack->price * $item['quantity'];
+                $snackTotal += $price;
 
-            OrderSnack::create([
-                'order_id' => $orderId,
-                'snack_id' => $item['snack_id'],
-                'quantity' => $item['quantity'],
-                'price' => $price,
-            ]);
+                OrderSnack::create([
+                    'order_id' => $orderId,
+                    'snack_id' => $item['snack_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $price,
+                ]);
+            }
         }
 
         // Tính lại tổng = ghế + snacks
@@ -303,17 +344,33 @@ class BookingController extends Controller
     public function cancelOrder(Request $request, int $orderId)
     {
         try {
-            DB::transaction(function () use ($orderId, $request) {
+            $showId = null;
+            DB::transaction(function () use ($orderId, $request, &$showId) {
                 $order = Order::where('id', $orderId)
                     ->where('user_id', $request->user()->id)
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $showId = $order->show_id;
+
                 if ($order->status === 'pending') {
-                    $order->update(['status' => 'cancelled']);
+                    $reason = $request->input('reason');
+                    $qrCodeValue = ($reason === 'change_seats') ? 'reason:change_seats' : null;
+
+                    $order->update([
+                        'status' => 'cancelled',
+                        'qr_code' => $qrCodeValue,
+                    ]);
                 }
             });
-            return response()->json(['message' => 'Đã hủy đơn hàng']);
+
+            return response()->json([
+                'message' => 'Đã hủy đơn hàng',
+                'data' => [
+                    'order_id' => $orderId,
+                    'show_id' => $showId,
+                ],
+            ]);
         } catch (Exception $e) {
             return response()->json(['message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
         }

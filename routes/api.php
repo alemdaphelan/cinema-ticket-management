@@ -81,6 +81,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Staff
     Route::middleware([RoleMiddleware::class . ':staff,admin'])->prefix('staff')->group(function () {
         Route::post('/tickets/scan', [StaffController::class, 'scanTicket']);
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/export', [OrderController::class, 'exportExcel']);
+        Route::get('/orders/{id}', [BookingController::class, 'orderDetail']);
+        Route::get('/statistics', [OrderController::class, 'statistics']);
     });
 
     // Admin
@@ -94,6 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Shows
         Route::get('/shows', [ShowController::class, 'index']);
+        Route::get('/shows/room-schedule', [ShowController::class, 'getRoomSchedule']);
         Route::post('/shows', [ShowController::class, 'store']);
         Route::put('/shows/{id}', [ShowController::class, 'update']);
         Route::delete('/shows/{id}', [ShowController::class, 'destroy']);
@@ -112,6 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Orders & Statistics
         Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/export', [OrderController::class, 'exportExcel']);
         Route::get('/statistics', [OrderController::class, 'statistics']);
     });
 });

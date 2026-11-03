@@ -1,6 +1,9 @@
 <x-layouts.main title="Chi tiết vé - CineStar">
-    <div class="max-w-2xl mx-auto px-4 py-16">
-        <div class="glass rounded-2xl p-8 text-center animate-fade-in-up">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        {{-- Booking Breadcrumb Stepper --}}
+        <x-booking-breadcrumb :step="4" :orderId="$orderId" :showId="$showId ?? null" />
+
+        <div class="max-w-2xl mx-auto glass rounded-2xl p-8 text-center animate-fade-in-up">
             <h1 class="text-2xl font-bold text-white mb-2" id="status-title">Đang tải...</h1>
             <p class="text-[var(--color-cinema-text-muted)] mb-8" id="status-message"></p>
 

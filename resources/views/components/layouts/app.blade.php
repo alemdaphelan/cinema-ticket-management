@@ -66,8 +66,10 @@
                 </div>
             </div>
 
-            {{-- Auth Buttons --}}
-            <div class="flex items-center gap-4">
+            {{-- Auth Buttons & Theme Toggle --}}
+            <div class="flex items-center gap-3">
+                <x-theme-toggle />
+
                 @auth
                     <div class="flex items-center gap-3">
                         <span class="text-sm text-[var(--color-cinema-text-muted)] hidden sm:block">

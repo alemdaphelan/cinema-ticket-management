@@ -54,19 +54,69 @@ Route::get('/schedule', function () {
 // === Booking (cần login) ===
 Route::middleware('auth')->prefix('booking')->group(function () {
     Route::get('/seats/{showId}', function (int $showId) {
-        return view('pages.booking.select-seats', ['showId' => $showId]);
+        $activeOrder = \App\Models\Order::where('user_id', auth()->id())
+            ->where('show_id', $showId)
+            ->where('status', 'pending')
+            ->where('hold_expires_at', '>', now())
+            ->with(['seats.seat'])
+            ->first();
+
+        return view('pages.booking.select-seats', [
+            'showId' => $showId,
+            'activeOrder' => $activeOrder,
+            'orderId' => $activeOrder?->id,
+            'holdExpiresAt' => $activeOrder?->hold_expires_at,
+        ]);
     })->name('booking.seats');
 
     Route::get('/snacks/{orderId}', function (int $orderId) {
-        return view('pages.booking.select-snacks', ['orderId' => $orderId]);
+        $order = \App\Models\Order::where('user_id', auth()->id())
+            ->where('id', $orderId)
+            ->with(['snacks'])
+            ->first();
+
+        if (! $order || $order->status === 'cancelled') {
+            $targetShowId = $order?->show_id;
+            return $targetShowId ? redirect()->route('booking.seats', ['showId' => $targetShowId]) : redirect()->route('home');
+        }
+
+        return view('pages.booking.select-snacks', [
+            'orderId' => $orderId,
+            'showId' => $order->show_id,
+            'order' => $order,
+            'selectedSnacks' => $order->snacks->pluck('quantity', 'snack_id'),
+            'holdExpiresAt' => $order->hold_expires_at,
+        ]);
     })->name('booking.snacks');
 
     Route::get('/payment/{orderId}', function (int $orderId) {
-        return view('pages.booking.payment', ['orderId' => $orderId]);
+        $order = \App\Models\Order::where('user_id', auth()->id())
+            ->where('id', $orderId)
+            ->first();
+
+        if (! $order || $order->status === 'cancelled') {
+            $targetShowId = $order?->show_id;
+            return $targetShowId ? redirect()->route('booking.seats', ['showId' => $targetShowId]) : redirect()->route('home');
+        }
+
+        return view('pages.booking.payment', [
+            'orderId' => $orderId,
+            'showId' => $order->show_id,
+            'order' => $order,
+            'holdExpiresAt' => $order->hold_expires_at,
+        ]);
     })->name('booking.payment');
 
     Route::get('/success/{orderId}', function (int $orderId) {
-        return view('pages.booking.success', ['orderId' => $orderId]);
+        $order = \App\Models\Order::where('user_id', auth()->id())
+            ->where('id', $orderId)
+            ->firstOrFail();
+
+        return view('pages.booking.success', [
+            'orderId' => $orderId,
+            'showId' => $order->show_id,
+            'order' => $order,
+        ]);
     })->name('booking.success');
 
     Route::get('/history', function () {
@@ -83,7 +133,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // === Admin (cần login + role admin) ===
-Route::middleware('auth')->prefix('admin')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
@@ -105,7 +155,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     })->name('admin.shows');
 
     Route::get('/shows/create', function () {
-        return view('admin.shows.create');
+        $movies = \App\Models\Movie::whereIn('status', ['showing', 'coming_soon'])->orderBy('title')->get();
+        $rooms = \App\Models\Room::orderBy('id')->get();
+        return view('admin.shows.create', compact('movies', 'rooms'));
     })->name('admin.shows.create');
 
     Route::get('/snacks', function () {
@@ -119,14 +171,22 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/orders', function () {
         return view('admin.orders.index');
     })->name('admin.orders');
+
+    Route::get('/orders/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('admin.orders.export');
 });
 
-// === Staff ===
-Route::middleware('auth')->prefix('staff')->group(function () {
+// === Staff (cần login + role staff hoặc admin) ===
+Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':staff,admin'])->prefix('staff')->group(function () {
     Route::get('/scan', function () {
         return view('staff.scan');
     })->name('staff.scan');
-    
+
+    Route::get('/orders', function () {
+        return view('staff.orders.index');
+    })->name('staff.orders');
+
+    Route::get('/orders/export', [App\Http\Controllers\OrderController::class, 'exportExcel'])->name('staff.orders.export');
+
     Route::get('/booking', function () {
         return redirect('/');
     })->name('staff.booking');

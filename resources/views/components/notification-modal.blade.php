@@ -62,13 +62,21 @@
             const iconContainer = document.getElementById('cinema-modal-icon-container');
             const titleEl = document.getElementById('cinema-modal-title');
             const msgEl = document.getElementById('cinema-modal-message');
-            const confirmBtn = document.getElementById('cinema-modal-confirm-btn');
+            const actionsEl = document.getElementById('cinema-modal-actions');
 
             if (!modal) return;
 
             titleEl.textContent = title;
             msgEl.textContent = message;
-            confirmBtn.textContent = confirmText;
+
+            // Reset actions to single button mode
+            actionsEl.className = 'flex flex-col gap-2.5 mt-2';
+            actionsEl.innerHTML = `
+                <button type="button" id="cinema-modal-confirm-btn" onclick="closeCinemaModal()" class="btn-primary w-full py-3 rounded-xl font-bold cursor-pointer shadow-lg shadow-red-500/20">
+                    ${confirmText}
+                </button>
+            `;
+            const confirmBtn = document.getElementById('cinema-modal-confirm-btn');
 
             // Configure Icon and Colors based on type
             let iconSvg = '';
@@ -109,6 +117,94 @@
             iconContainer.className = `w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-inner border ${iconBg}`;
             iconContainer.innerHTML = iconSvg;
             box.className = `glass p-6 md:p-8 rounded-3xl max-w-md w-full text-center transform scale-95 transition-transform duration-300 border shadow-2xl relative overflow-hidden ${borderColor}`;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        };
+
+        window.showConfirmModal = function(options) {
+            const title = options.title || 'Xác nhận';
+            const message = options.message || '';
+            const type = options.type || 'warning';
+            const confirmText = options.confirmText || 'Xác nhận';
+            const cancelText = options.cancelText || 'Hủy bỏ';
+            const onConfirm = options.onConfirm || null;
+            const onCancel = options.onCancel || null;
+
+            const modal = document.getElementById('cinema-global-modal');
+            const box = document.getElementById('cinema-modal-box');
+            const iconContainer = document.getElementById('cinema-modal-icon-container');
+            const titleEl = document.getElementById('cinema-modal-title');
+            const msgEl = document.getElementById('cinema-modal-message');
+            const actionsEl = document.getElementById('cinema-modal-actions');
+
+            if (!modal) return;
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+
+            // Configure Icon based on type
+            let iconSvg = '';
+            let iconBg = '';
+            let borderColor = '';
+            let confirmBtnClass = '';
+            let confirmBtnStyle = '';
+
+            switch (type) {
+                case 'warning':
+                    iconBg = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+                    borderColor = 'border-amber-500/40';
+                    confirmBtnClass = 'flex-1 py-3 px-4 rounded-xl font-bold cursor-pointer text-white shadow-lg shadow-amber-500/20 text-sm transition-all hover:brightness-110';
+                    confirmBtnStyle = 'background: linear-gradient(135deg, #e50914, #b20710);';
+                    iconSvg = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+                    break;
+                case 'error':
+                    iconBg = 'bg-red-500/15 text-red-400 border-red-500/30';
+                    borderColor = 'border-red-500/40';
+                    confirmBtnClass = 'flex-1 btn-primary py-3 px-4 rounded-xl font-bold cursor-pointer shadow-lg shadow-red-500/20 text-sm';
+                    confirmBtnStyle = '';
+                    iconSvg = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>`;
+                    break;
+                default:
+                    iconBg = 'bg-blue-500/15 text-blue-400 border-blue-500/30';
+                    borderColor = 'border-blue-500/40';
+                    confirmBtnClass = 'flex-1 btn-primary py-3 px-4 rounded-xl font-bold cursor-pointer text-sm';
+                    confirmBtnStyle = '';
+                    iconSvg = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+                    break;
+            }
+
+            iconContainer.className = `w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-inner border ${iconBg}`;
+            iconContainer.innerHTML = iconSvg;
+            box.className = `glass p-6 md:p-8 rounded-3xl max-w-md w-full text-center transform scale-95 transition-transform duration-300 border shadow-2xl relative overflow-hidden ${borderColor}`;
+
+            // Two buttons: Cancel + Confirm
+            actionsEl.className = 'flex items-center gap-3 mt-2';
+            actionsEl.innerHTML = `
+                <button type="button" id="cinema-modal-cancel-btn" class="flex-1 py-3 px-4 rounded-xl font-semibold cursor-pointer text-sm transition-all hover:bg-white/10 text-[var(--color-cinema-text-muted)] hover:text-white" style="background: var(--color-cinema-card); border: 1px solid var(--color-cinema-border);">
+                    ${cancelText}
+                </button>
+                <button type="button" id="cinema-modal-confirm-btn" class="${confirmBtnClass}" style="${confirmBtnStyle}">
+                    ${confirmText}
+                </button>
+            `;
+
+            const cancelBtn = document.getElementById('cinema-modal-cancel-btn');
+            const confirmBtn = document.getElementById('cinema-modal-confirm-btn');
+
+            cancelBtn.onclick = function() {
+                closeCinemaModal();
+                if (typeof onCancel === 'function') onCancel();
+            };
+
+            confirmBtn.onclick = function() {
+                closeCinemaModal();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
 
             modal.classList.remove('hidden');
             setTimeout(() => {

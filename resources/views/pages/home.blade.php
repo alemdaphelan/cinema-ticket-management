@@ -48,7 +48,7 @@
                     ['name' => 'Hoạt Hình', 'image' => 'https://images.unsplash.com/photo-1524253482453-3fed8d2fe12b?q=80&w=800&auto=format&fit=crop'],
                     ['name' => 'Tình Cảm', 'image' => 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?q=80&w=800&auto=format&fit=crop'],
                     ['name' => 'Khoa Học Viễn Tưởng', 'image' => 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800&auto=format&fit=crop'],
-                    ['name' => 'Phiêu Lưu', 'image' => 'https://images.unsplash.com/photo-1536697246787-1f276329e4fa?q=80&w=800&auto=format&fit=crop'],
+                    ['name' => 'Phiêu Lưu', 'image' => 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop'],
                     ['name' => 'Tâm Lý', 'image' => 'https://images.unsplash.com/photo-1518066000714-58c45f1a2c0a?q=80&w=800&auto=format&fit=crop'],
                 ];
             @endphp
@@ -56,9 +56,9 @@
             @foreach($genres as $genre)
                 <a href="/genres?genre={{ urlencode($genre['name']) }}" class="relative h-32 md:h-40 rounded-2xl overflow-hidden cursor-pointer group shadow-lg border border-[var(--color-cinema-border)] hover:border-[var(--color-cinema-primary)] transition-all duration-300 transform hover:-translate-y-1 block">
                     <img src="{{ $genre['image'] }}" alt="{{ $genre['name'] }}" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-in-out">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent"></div>
                     <div class="absolute inset-0 p-4 flex flex-col justify-end items-center text-center">
-                        <h3 class="text-white font-bold text-lg md:text-xl tracking-wide group-hover:text-[var(--color-cinema-primary)] transition-colors">{{ $genre['name'] }}</h3>
+                        <h3 class="!text-white font-bold text-lg md:text-xl tracking-wide group-hover:!text-[var(--color-cinema-primary)] transition-colors drop-shadow-md" style="color: #ffffff !important;">{{ $genre['name'] }}</h3>
                     </div>
                 </a>
             @endforeach
@@ -249,7 +249,7 @@
                                 ${movie.age_rating ? `<span class="absolute top-2 left-2 text-xs px-2 py-1 rounded-full bg-red-600 text-white font-bold">${movie.age_rating}</span>` : ''}
                             </div>
                             <div class="p-3">
-                                <h3 class="font-semibold text-sm text-white line-clamp-2 group-hover:text-[var(--color-cinema-primary)] transition-colors">${movie.title}</h3>
+                                <h3 class="font-semibold text-sm text-[var(--color-cinema-text)] line-clamp-2 group-hover:text-[var(--color-cinema-primary)] transition-colors">${movie.title}</h3>
                                 <p class="text-xs text-[var(--color-cinema-text-muted)] mt-1">${movie.genre || movie.director || ''}</p>
                             </div>
                         </a>

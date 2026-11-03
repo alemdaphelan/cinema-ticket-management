@@ -109,14 +109,14 @@ class DatabaseSeeder extends Seeder
 
         // === Snacks ===
         $snacks = [
-            ['name' => 'Combo 1 - Bắp nhỏ + Nước ngọt', 'price' => 49000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Combo 2 - Bắp lớn + 2 Nước ngọt', 'price' => 79000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Combo Đôi - 2 Bắp lớn + 2 Nước ngọt', 'price' => 109000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Combo Gia đình - 2 Bắp lớn + 4 Nước ngọt', 'price' => 159000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Nước ngọt Pepsi', 'price' => 29000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Nước suối Aquafina', 'price' => 15000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Bắp rang caramel', 'price' => 45000, 'image_url' => '', 'is_active' => true],
-            ['name' => 'Hotdog xúc xích', 'price' => 39000, 'image_url' => '', 'is_active' => true],
+            ['name' => 'Combo 1 - Bắp nhỏ + Nước ngọt', 'price' => 49000, 'image_url' => 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Combo 2 - Bắp lớn + 2 Nước ngọt', 'price' => 79000, 'image_url' => 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Combo Đôi - 2 Bắp lớn + 2 Nước ngọt', 'price' => 109000, 'image_url' => 'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Combo Gia đình - 2 Bắp lớn + 4 Nước ngọt', 'price' => 159000, 'image_url' => 'https://images.unsplash.com/photo-1512149177596-f817c7ef5d4c?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Nước ngọt Pepsi', 'price' => 29000, 'image_url' => 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Nước suối Aquafina', 'price' => 15000, 'image_url' => 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Bắp rang caramel', 'price' => 45000, 'image_url' => 'https://images.unsplash.com/photo-1572177191856-3cde618dee1f?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
+            ['name' => 'Hotdog xúc xích', 'price' => 39000, 'image_url' => 'https://images.unsplash.com/photo-1619740455993-9e612b1af08a?q=80&w=600&auto=format&fit=crop', 'is_active' => true],
         ];
 
         foreach ($snacks as $snackData) {

@@ -1,6 +1,8 @@
 <x-layouts.main title="Thanh toán - CineStar">
     <div class="max-w-6xl mx-auto px-4 py-8">
-        <a href="javascript:history.back()" class="text-sm text-[var(--color-cinema-text-muted)] hover:text-white transition-colors">← Quay lại</a>
+        {{-- Booking Breadcrumb Stepper --}}
+        <x-booking-breadcrumb :step="3" :orderId="$orderId" :showId="$showId" :holdExpiresAt="$holdExpiresAt ?? null" />
+
         <h1 class="text-2xl font-bold text-white mt-2 mb-6">Thanh toán</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -19,7 +21,12 @@
                     <div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Suất chiếu</span><span class="text-white text-right" id="os-time">—</span></div>
                     <div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Ngày chiếu</span><span class="text-white text-right" id="os-date">—</span></div>
                     <div class="flex justify-between items-center"><span class="text-[var(--color-cinema-text-muted)]">Phòng</span><span class="text-white text-right" id="os-room">—</span></div>
-                    <div class="flex justify-between items-start"><span class="text-[var(--color-cinema-text-muted)]">Ghế đã chọn</span><span class="text-[var(--color-cinema-accent)] font-semibold text-right max-w-[60%]" id="os-seats">—</span></div>
+                    <div class="flex justify-between items-start">
+                        <span class="text-[var(--color-cinema-text-muted)]">Ghế đã chọn</span>
+                        <div class="text-right max-w-[60%]">
+                            <span class="text-[var(--color-cinema-accent)] font-semibold block" id="os-seats">—</span>
+                        </div>
+                    </div>
                     
                     <div id="os-snacks-container" class="hidden">
                         <div class="border-t border-[var(--color-cinema-border)] my-3"></div>
@@ -129,6 +136,7 @@
 
     <script>
         const orderId = {{ $orderId }};
+        const showId = {{ $showId }};
         let orderData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
